@@ -1,0 +1,107 @@
+body{
+	padding-top: 54px;
+	-webkit-touch-callout: none !important;
+	-webkit-user-select: none !important;
+	background-color: black;
+	color: #A9A9A9;
+	-webkit-overflow-scrolling: touch;
+}
+.noMargin{ margin: 0 0; padding: 0 10px; }
+.navbar-brand{ padding-left: 0px; }
+.marginTop10{ margin-top: 10px; }
+.marginTop20{ margin-top: 20px; }
+.marginTop0{ margin-top: 0px; }
+.marginBottom10{ margin-bottom: 10px; }
+.marginBottom20{ margin-bottom: 20px; }
+.marginRight10{ margin-right: 10px; }
+.marginLeft20{ margin-left: 20px; }
+.semiTransparente{ opacity: .6; }
+.paddingRight0{ padding-right: 0; }
+.paddingLeft4{ padding-left: 4px; }
+.paddingLeft4{ padding-left: 4px; }
+.negritas{ font-weight: bold; }
+.collapse, .collapse.in, .clicking { transition: all .8s;}
+.dropdown-toggle{ padding: 6px 12px !important; } 
+.precioSum{ margin-right: 6px; }
+.w100{ width: 100%; }
+.f8em{ font-size: .8em; }
+.table-striped>tbody>tr:nth-child(odd) {
+	background-color: #272727;
+}
+.table>thead>tr>th, .table>tbody>tr>th, .table>tfoot>tr>th, .table>thead>tr>td, .table>tbody>tr>td, .table>tfoot>tr>td {
+	border-top: 1px solid #494949;
+}
+.table-items  td{
+	vertical-align: middle !important;
+}
+.table-items tr.clicking .trTitulo{
+	transition: all 1s;
+	text-shadow: 0px 0px 10px white;
+	color: transparent;
+}
+.container {
+	padding-right: 6px;
+	padding-left: 6px;
+}
+.navbar-fixed-top{	
+	width: 100%;
+	padding: 0 14px;
+}
+
+.navbar-inverse .navbar-brand {
+	background: url(logo_small.png) no-repeat left center;	
+	width: 50px;
+	height: 50px;
+	margin-left: -8px;
+	margin-top: 4px;
+}
+/*MIS COMICS*/
+.mc-panel{
+	display: inline-block;
+	height: 146px;
+	border: 1px solid gray;
+	background: rgba(255,255,255,0.5) center center no-repeat;
+	background-size: cover;
+	width: 96px;
+	margin: 6px 6px;
+	overflow: hidden;
+	color: white;
+	position: relative;
+	border-radius: 2px;
+}
+.mc-cover { position: relative; }
+.mc-volumen, .mc-precio, .mc-titulo{
+	background: rgba(0, 0, 0, 0.9);
+	text-shadow: 1px 1px 0px black;
+}
+.mc-volumen, .mc-precio{
+	position: absolute;
+	top: 0;
+	padding: 0 2px;
+	/*border: gray 1px solid;*/
+	font-size: .9em;
+	border-right: none;
+	border-top: none;
+	color: white;
+	opacity: .9;
+}
+.mc-volumen{ right: 0; }
+.mc-precio {  }
+.mc-titulo{
+	font-size: .68em;
+	/*line-height: 1;*/
+	padding: 2px 2px;
+	overflow: hidden;
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+}
+/*.mc-agregar {
+	position: absolute;
+	bottom: 2px;
+	right: 2px;
+}*/
+.mc-panel-titulo{
+	padding: 14px 0 10px 6px;
+	border-top: 1px solid grey;
+}

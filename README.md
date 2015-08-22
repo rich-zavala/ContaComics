@@ -1,2 +1,0 @@
-# ContaComics
-Primera versión

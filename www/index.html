@@ -2,276 +2,307 @@
 <html lang="en" ng-app="comicsApp" ng-cloak>
   <head>
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+		<meta name="viewport" content="width=device-width, initial-scale=.9, user-scalable=no">
 		<title>ContaComics</title>
 		<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
 		<!--<link rel="stylesheet" href="bootstrap/css/bootstrap-theme.min.css">-->
+		<link rel="stylesheet" href="css/angular-csp.css">
 		<link rel="stylesheet" href="css/style.css">
 		<link rel="stylesheet" href="css/typeahead.css">
-		
-        <!--<script src="cordova.js"></script>          <!-- phantom library, needed for Cordova api calls, added during build -->
-        <script src="js/app.js"></script>           <!-- recommended location of your JavaScript code relative to other JS files -->
-        <!--<script src="xdk/init-dev.js"></script>     <!-- normalizes device and document ready events, see README for details -->
-		
-		<script src="./js/angular.js"></script>
-		<script src="./js/ngStorage.js"></script>
+		<script src="cordova.js"></script>          <!-- phantom library, needed for Cordova api calls, added during build -->
+		<script src="js/app.js"></script>           <!-- recommended location of your JavaScript code relative to other JS files -->
+		<script src="xdk/init-dev.js"></script>     <!-- normalizes device and document ready events, see README for details -->
+		<script src="./js/app.js"></script>
 		<script src="./js/jquery.min.js"></script>
 		<script src="./bootstrap/js/bootstrap.min.js"></script>
-		<script src="./js/typeahead.bundle.js"></script>
-		
-		<script src="./js/app.js"></script>
 		<script src="./js/comunes.js"></script>
+		<script src="./js/moment.js"></script>
+		<script src="./js/typeahead.bundle.js"></script>		
+		<script src="./js/angular.js"></script>
+		<script src="./js/ngStorage.js"></script>
+		<script src="./js/angularTools.js"></script>
 		<script src="./js/system.js"></script>
 	</head>
   <body ng-controller="ComicsAppCtrl" ng-init="dbInitiate();">
-	<div class="container-fluid">
-    <nav class="navbar-fixed-top navbar-inverse">
-			<span class="navbar-brand negritas"></span>
-			<div class="btn-group pull-right">
-				<button type="button" class="btn btn-default navbar-btn" ng-disabled="pestanaActiva == 'listado'" ng-click="pestanaActivar('listado')"><span class="glyphicon glyphicon-tasks"></span></button>
-				<button type="button" class="btn btn-default navbar-btn" ng-disabled="pestanaActiva == 'formulario'" ng-click="pestanaActivar('formulario')"><span class="glyphicon glyphicon-plus"></span></button>
-				<button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="glyphicon glyphicon-cog"></span></button>
-				<ul class="dropdown-menu" role="menu">
-					<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(-1)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == -1, 'glyphicon-unchecked' : filtroActivo != -1 }"></span> Ver todos</a></li>
-					<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(0)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == 0, 'glyphicon-unchecked' : filtroActivo != 0 }"></span> Ver no adquiridos</a></li>
-					<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(1)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == 1, 'glyphicon-unchecked' : filtroActivo != 1 }"></span> Ver adquiridos</a></li>
-					<li ng-if="pestanaActiva == 'listado'" class="divider"></li>
-					<li><a href ng-click="pestanaActivar('about')"><span class="glyphicon glyphicon-info-sign marginRight10"></span> Acerca de...</a></li>
-					<li><a href ng-click="exitApp()"><span class="glyphicon glyphicon-off marginRight10"></span> Salir</a></li>
-					<!--
-					<li><a href ng-click="pestanaActivar('opciones')"><span class="glyphicon glyphicon-hdd marginRight10"></span> Configuración</button></li>
-					<li><a href ng-click="dbReset()"><span class="glyphicon glyphicon-off marginRight10"></span> Reiniciar BDD</a></li>
-					<li><a href ng-click="dbInitiate()"><span class="glyphicon glyphicon-download-alt marginRight10"></span> Recargar BDD</a></li>
-					<li><a href ng-click="sync()"><span class="glyphicon glyphicon-refresh marginRight10"></span> Sincronizar</a></li>
-					-->
-				</ul>
-			</div>
-			<div class="pull-right marginRight10" ng-show="pestanaActiva == 'formulario'">
-				<button type="button" class="btn btn-info navbar-btn" ng-click="registrar()" id="btn-registrar"><span class="glyphicon glyphicon-save"></span> Registrar</button>
-			</div>
-			<div class="pull-right marginRight10" ng-show="pestanaActiva == 'opciones'">
-				<button type="button" class="btn btn-info navbar-btn" ng-click="actualizarOpciones()"><span class="glyphicon glyphicon-floppy-disk"></span></button>
-			</div>
-		</nav>
-
-		<!--<div class="clearfix marginTop20" ng-show="alertSync">
-			<hr>
-			<div class="alert alert-info">Sincronizando...</div>
-		</div>-->
-		
-		<div role="tabpanel" ng-hide="alertSync">
-			<div class="tab-content">
-				<div role="tabpanel" class="tab-pane active" id="listado" ng-show="pestanaActiva == 'listado'">
-				
-					<span ng-show="$storage.registros.length == 0 && !alertCargando">
-						<div class="alert alert-danger marginTop20"><span class="glyphicon glyphicon-warning-sign"></span> Actualmente no hay artículos registrados.</div>
-						<button class="btn btn-success col-xs-12" ng-click="pestanaActivar('formulario')"><span class="glyphicon glyphicon-exclamation-sign"></span> Haz click aquí para comenzar</button>
-					</span>
-					
-					<div class="alert alert-warning marginTop20" ng-show="alertCargando">Cargando información...</div>
-					
-					<div id="listado-contenedor" ng-show="objsize($storage.registros) > 0">
-					
-						<ul class="nav nav-pills marginTop10 marginBottom20" role="tablist">
-							<li ng-repeat="agno in keysReversed($storage.registros)" ng-class="{active:agno == agnoActivo}">
-								<a href="#tab-{{agno}}" aria-controls="tab-{{agno}}" role="tab" data-toggle="tab" ng-click="pestanaAgnoActivo(agno)">{{agno}}</a>
-							</li>
-						</ul>
+		<div class="container-fluid">
+			<nav class="navbar-fixed-top navbar-inverse">
+				<span class="navbar-brand negritas"></span>
+				<div class="btn-group pull-right">
+					<button type="button" class="btn btn-default navbar-btn" ng-disabled="pestanaActiva == 'listado'" ng-click="pestanaActivar('listado')"><span class="glyphicon glyphicon-tasks"></span></button>
+					<button type="button" class="btn btn-default navbar-btn" ng-disabled="pestanaActiva == 'formulario'" ng-click="pestanaActivar('formulario')"><span class="glyphicon glyphicon-plus"></span></button>
+					<button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="glyphicon glyphicon-cog"></span></button>
+					<ul class="dropdown-menu" role="menu">
+						<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(-1)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == -1, 'glyphicon-unchecked' : filtroActivo != -1 }"></span> Ver todos</a></li>
+						<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(0)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == 0, 'glyphicon-unchecked' : filtroActivo != 0 }"></span> Ver no adquiridos</a></li>
+						<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(1)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == 1, 'glyphicon-unchecked' : filtroActivo != 1 }"></span> Ver adquiridos</a></li>
+						<li ng-if="pestanaActiva == 'listado'" class="divider"></li>
+						<li><a href ng-click="bddVaciar()" ng-if="dbug"><span class="glyphicon glyphicon-repeat marginRight10"></span> Vaciar BDD</a></li>
+						<li><a href ng-click="bddEjemplos()" ng-if="dbug"><span class="glyphicon glyphicon-star marginRight10"></span> Llenar BDD</a></li>
+						<li><a href ng-click="pestanaActivar('series')"><span class="glyphicon glyphicon-book marginRight10"></span> Series</a></li>
+						<li ng-if="pestanaActiva == 'listado'" class="divider"></li>
+						<li><a href ng-click="pestanaActivar('about')"><span class="glyphicon glyphicon-info-sign marginRight10"></span> Acerca de...</a></li>
+						<li><a href ng-click="exitApp()"><span class="glyphicon glyphicon-off marginRight10"></span> Salir</a></li>
+					</ul>
+				</div>
+				<div class="pull-right marginRight10" ng-if="pestanaActiva == 'formulario'">
+					<button type="button" class="btn btn-info navbar-btn" ng-click="registrar()" id="btn-registrar"><span class="glyphicon glyphicon-save"></span> Registrar</button>
+				</div>
+				<div class="pull-right marginRight10" ng-if="pestanaActiva == 'opciones'">
+					<button type="button" class="btn btn-info navbar-btn" ng-click="actualizarOpciones()"><span class="glyphicon glyphicon-floppy-disk"></span></button>
+				</div>
+			</nav>		
+			<div role="tabpanel">
+				<div class="tab-content">
+					<div role="tabpanel" id="listado" ng-show="pestanaActiva == 'listado'">
+						<span ng-if="objsize(registros) == 0 && !alertCargando">
+							<div class="alert alert-danger marginTop20"><span class="glyphicon glyphicon-warning-sign"></span> Actualmente no hay artículos registrados.</div>
+							<button class="btn btn-success col-xs-12" ng-click="pestanaActivar('formulario')"><span class="glyphicon glyphicon-exclamation-sign"></span> Haz click aquí para comenzar</button>
+						</span>
+						<div class="alert alert-warning marginTop20" ng-if="alertCargando">Cargando información...</div>
+						<div id="listado-contenedor" ng-if="objsize(registros) > 0">
 						
-						<div class="tab-content">
-							<div role="tabpanel" class="tab-pane" id="tab-{{agno}}" ng-repeat="(agno, meses) in $storage.registros" ng-class="{active:agno == agnoActivo}">
-									<div ng-repeat="mes in keysReversed(meses)">
-										<div ng-repeat="(dia, items) in meses[mes]">
-											<small class="pull-right precioSum text-muted semiTransparente">{{sumatorias[agno + mes + dia] | currency}}</small>
-											<h4 class="negritas">{{items[0].fecha | date : 'dd MMM, yyyy'}}</h4>											
+							<ul class="nav nav-pills marginTop10 marginBottom20" role="tablist">
+								<li ng-repeat="(meses, agno) in keysReversed(fechas)" ng-class="{active:agno == agnoActivo}">
+									<a href="#tab-{{agno}}" aria-controls="tab-{{agno}}" role="tab" data-toggle="tab" ng-click="pestanaAgnoActivo(agno)">{{agno}}</a>
+								</li>
+							</ul>
+							<div class="tab-content">
+								<div role="tabpanel" id="tab-{{agnoActivo}}" ng-repeat="mes in keysReversed(fechas[agnoActivo])">
+									<div ng-repeat="dia in fechas[agnoActivo][mes]" ng-if="objsize(filteredObjects(registros[agnoActivo], { dia: dia, mes: mes })) > 0">
+										<div class="tabla-registros">
+											<small class="pull-right precioSum text-muted semiTransparente">{{sumatorias[agnoActivo + z(mes) + z(dia)] | currency}}</small>
+											<h4 class="negritas">{{moment(agnoActivo + '-' + mes + '-' + dia).format('D [de] MMMM')}}</h4>
 											<table class="table table-condensed table-striped table-items">
-												<tr ng-repeat="(key, r) in items" on-long-press="eliminar(agno, mes, dia, r.id, r.titulo, r.volumen)" on-double-click="detallesShow(agno, mes, dia, r)" ng-init="sumar(agno, mes, dia, r.precio)" ng-class="{ 'adquiridoEscondido' : (r.adquirido == 0 && filtroActivo == 1) || (r.adquirido == 1 && filtroActivo == 0) }" class="registro">
+												<!--<tr ng-repeat="(key, r) in items | filter:{ 'adquirido' : filtroActivo >= 0 ? filtroActivo : '' }" on-long-press="detallesShow(r)" on-double-click="detallesShow(r)" ng-init="sumar(agno, mes, dia, r.precio)" class="registro">-->
+												<tr ng-repeat="(key, r) in filteredObjects(registros[agnoActivo], { dia: dia, mes: mes })" on-long-press="detallesShow(r)" on-double-click="detallesShow(r)" ng-init="sumar(agno, mes, dia, r.precio)" class="registro">
 													<td width="1">
 														<label class="btn btn-xs" ng-class="{'active btn-success':r.adquirido == 1, 'btn-warning':r.adquirido == 0}">
 															<input type="checkbox" class="hidden" ng-checked="r.adquirido == 1" ng-model="adquirido" ng-click="adquisicion(r)">
 															<span class="glyphicon" ng-class="{'glyphicon-ok':r.adquirido == 1, 'glyphicon-minus':r.adquirido == 0}"></span>
 														</label>
 													</td>
-													<td class="trTitulo">{{r.titulo}} #{{r.volumen}} <div class="f8em text-muted" ng-show="r.variante.length > 0">Var. {{r.variante}}</div></td>
+													<td class="trTitulo">{{r.titulo}} #{{r.volumen}} <div class="f8em text-muted" ng-if="r.variante.length > 0">Var. {{r.variante}}</div></td>
 													<td width="1" class="text-right" nowrap><small>{{r.precio | currency}}</small></td>
 												</tr>
 											</table>
 										</div>
 									</div>
+								</div>
 							</div>
 						</div>
 					</div>
-				</div>
-				
-				<div role="tabpanel" class="tab-pane active" id="formulario" ng-show="pestanaActiva == 'formulario'">
-					<h4><b>Nuevo registro</b></h4>
-					<div class="row">
-						<div class="form-group col-xs-7">
-						<label for="nuevo_titulo">Título</label>
-						<input type="text" class="form-control typeAhead" placeholder="Título del artículo" name="titulo" id="nuevo_titulo" ng-model="nuevo.titulo" ng-blur="nuevo.titulo = nuevo.titulo.toUpperCase();">
-					</div>
-						<div class="form-group col-xs-5">
-							<label for="nuevo_variante">Variante</label>
-							<input type="text" class="form-control typeAhead" placeholder="Artista" name="variante" id="nuevo_variante" ng-model="nuevo.variante" ng-blur="nuevo.variante = nuevo.variante.toUpperCase();">
-						</div>
-					</div>
 					
-					<div class="row">
-						<div class="form-group col-xs-6">
-							<label for="nuevo_titulo">Volumen</label>
-							<input type="number" class="form-control" placeholder="Número de edición" name="volumen" id="nuevo_volumen" ng-model="nuevo.volumen">
+					<div role="tabpanel" id="series" ng-if="pestanaActiva == 'series'">
+						<h4><b>Series</b></h4>
+						<div class="row marginTop20">
+							<div class="form-group col-xs-12">
+								<label for="nuevo_titulo">Título</label>
+								<input type="text" class="form-control" placeholder="Título de la serie" name="titulo" id="series_titulo" ng-model="series.titulo">
+							</div>
 						</div>
-						<div class="form-group col-xs-6">
-							<label for="nuevo_titulo">Precio</label>
-							<input type="number" class="form-control" placeholder="Precio en pesos" name="titulo" id="nuevo_precio" ng-model="nuevo.precio">
-						</div>
-					</div>
-					
-					<div class="row">
-						<div class="form-group col-xs-6">
-							<label for="nuevo_titulo">Fecha de lanzamiento</label>
-							<input type="date" class="form-control" placeholder="Fecha en la que llegó al voceador" name="fecha" id="nuevo_fecha" ng-model="nuevo.fecha">
-						</div>
-						<div class="form-group col-xs-6">
-							<label for="nuevo_adquirido">Marcar como adquirido</label>
-							<button class="btn w100" ng-class="{'active btn-success':nuevo.adquirido == 1, 'btn-warning':nuevo.adquirido == 0}" ng-click="nuevo.adquirido = (nuevo.adquirido == 0) ? 1 : 0"><span class="glyphicon" ng-class="{'glyphicon-ok':nuevo.adquirido == 1, 'glyphicon-minus':nuevo.adquirido == 0}"></span></button>
-							<input type="checkbox" name="adquirido" ng-model="nuevo.adquirido" ng-true-value="1" ng-false-value="0" id="nuevo_adquirido" class="hidden">
-						</div>
-					</div>
-					
-					<hr>
-					<button id="miscomics_button" class="col-xs-12 btn btn-danger" ng-click="pestanaActiva = 'misComicsList'">
-						Ver calendario <b>MisComicsMX</b>
-					</button>
-				</div>
-				
-				<div role="tabpanel" class="tab-pane active" id="opciones" ng-show="pestanaActiva == 'opciones'">							
-					<h4><b>Configuración</b></h4>
-					<div class="form-group">
-						<label for="opcionHost">Host del servidor</label>
-						<input type="text" class="form-control" id="opcionHost" value="{{_host}}" required>
-					</div>
-					<!--<div class="form-group">
-						<label for="opcionDbName">Nombre de la base de datos</label>
-						<input type="text" class="form-control" id="opcionDbName" value="{{_dbName}}" required>
-					</div>
-					<div class="form-group">
-						<label for="opcionDbTableName">Nombre de la tabla de registros</label>
-						<input type="text" class="form-control" id="opcionDbTableName" value="{{_dbTableName}}" required>
-					</div>
-					<div class="form-group">
-						<label for="opcionDbDeleteTableName">Nombre de la tabla de eliminaciones</label>
-						<input type="text" class="form-control" id="opcionDbDeleteTableName" value="{{_dbDeleteTableName}}" required>
-					</div>
-					<div class="form-group row">
-						<div class="col-xs-12"><label for="opcionUltimaActualizacionFecha">Fecha de última sincronización</label></div>
-						<div class="col-xs-6"><input type="date" class="form-control" id="opcionUltimaActualizacionFecha" value="{{_syncFechaFecha}}" required></div>
-						<div class="col-xs-6"><input type="time" class="form-control" id="opcionUltimaActualizacionHora" value="{{_syncFechaHora}}" required></div>
-					</div>-->
-					<hr>
-					<div class="form-group row">
-						<div class="col-xs-12">
-							<label for="opcionUltimaActualizacionFecha">Ejecutar sentencia SQL</label>
-							<textarea class="form-control marginBottom10" rows="4" id="sqltext" ng-model="sqltext"></textarea>
-							<button id="sqlexec" type="button" class="btn btn-danger" ng-click="sqlexec()"><span class="glyphicon glyphicon-flash"></span> Ejecutar</button>
-						</div>
-					</div>
-					<hr>
-					<div class="form-group" ng-show="dumped"><textarea class="form-control" rows="20" id="dumpText"></textarea></div>
-					<button id="dump" type="button" class="btn btn-warning marginBottom20" ng-click="dump()"><span class="glyphicon glyphicon-export"></span> Generar SQL de registros</button>
-				</div>
-				
-				<div role="tabpanel" class="tab-pane active" id="misComicsList" ng-show="pestanaActiva == 'misComicsList'">
-					<div class="marginTop10 MCmesesBotones">
-						<button class="btn btn-sm btn-primary pull-left" ng-click="misComicsCambio(-1)">Mes anterior</button>
-						<button class="btn btn-sm btn-primary pull-right" ng-click="misComicsCambio(1)">Siguiente mes</button>
-					</div>
-					<div class="clearfix"></div>
-					
-					<div class="alert alert-warning marginTop20" ng-show="alertCargandoMisComics">Cargando información...</div>
-					<div class="alert alert-danger marginTop20" ng-show="alertCargandoMisComicsError"><span class="glyphicon glyphicon-ban-circle"></span> Hubo un fallo en tu conexión.</div>
 
-					<div class="marginTop10" ng-hide="alertCargandoMisComics || alertCargandoMisComicsError">
-						<div class="marginBottom20 text-center" ng-repeat="(kmc, mc) in misComicsObjetos[misComicsObjetosIndice].data">
-							<div class="mc-panel-titulo negritas">{{mc.fecha}}</div>
-							<div class="mc-panel marginTop0" style="background-image: url({{mco.cover}})" data-toggle="modal" data-target=".mc-modal" ng-repeat="(kmco, mco) in mc.objetos" ng-click="misComicsModal(mco, mc.fechaReal, kmc + '-' + kmco)"  id="mc-panel-{{kmc}}-{{kmco}}">
-								<div class="mc-cover">
-									<div class="mc-volumen">#{{mco.volumen}}</div>
-									<div class="mc-precio">{{mco.precio | currency}}</div>
-								</div>
-								<div class="mc-acciones">
-									<div class="mc-titulo">
-										{{mco.titulo}}
-										<span ng-show="mco.variante.length > 0">({{mco.variante}})</span>
-									</div>
+						<div class="row marginTop10">
+							<div class="form-group col-xs-12">
+								<ul class="list-group">
+									<li class="list-group-item padding0 noBG" ng-repeat="serie in typeOptions | filter : series.titulo | orderBy:''" ng-class="{active : series.serie == serie}">
+										<div class="serieTitulo" ng-click="seriesGenerar(serie)" ng-class="{negritas : series.serie == serie}">{{serie}}</div>
+										<div class="marginBottom10" ng-if="series.serie == serie">
+											<div class="serieDetalle" ng-repeat="r in series.registros" on-long-press="detallesShow(r)" on-double-click="detallesShow(r)">
+												#{{r.volumen}}
+												<span class="pull-right">
+													<span class="text-muted marginRight10">{{moment(r.fecha).format('ddd D [de] MMM [del] YYYY')}}</span>
+													<span class="text-warning marginRight10">{{r.precio | currency}}</span>
+												</span>
+												<label class="btn btn-xs serieDetalleBtn" ng-class="{'active btn-success':r.adquirido == 1, 'btn-warning':r.adquirido == 0}">
+													<input type="checkbox" class="hidden" ng-checked="r.adquirido == 1" ng-model="adquirido" ng-click="adquisicion(r)">
+													<span class="glyphicon" ng-class="{'glyphicon-ok':r.adquirido == 1, 'glyphicon-minus':r.adquirido == 0}"></span>
+												</label>
+											</div>
+										</div>
+									</li>
 								</div>
 							</div>
-							
-							<div class="clearfix"></div>
+						</div>
+					</div>
+					
+					<div role="tabpanel" id="formularios" ng-show="pestanaActiva == 'formulario'"> <!-- NOTA: ng-show en vez de ng-if para inserciones desde MisComics -->
+						<h4><b>Nuevo registro</b></h4>
+						<div class="row">
+							<div class="form-group col-xs-7">
+							<label for="nuevo_titulo">Título</label>
+							<input type="text" class="form-control typeAhead toUpper" placeholder="Título de la serie" name="titulo" id="nuevo_titulo" ng-model="nuevo.titulo">
+						</div>
+							<div class="form-group col-xs-5">
+								<label for="nuevo_variante">Variante</label>
+								<input type="text" class="form-control typeAhead" placeholder="Artista" name="variante" id="nuevo_variante" ng-model="nuevo.variante">
+							</div>
 						</div>
 						
+						<div class="row">
+							<div class="form-group col-xs-6">
+								<label for="nuevo_titulo">Volumen</label>
+								<input type="number" class="form-control" placeholder="Número de edición" name="volumen" id="nuevo_volumen" ng-model="nuevo.volumen">
+							</div>
+							<div class="form-group col-xs-6">
+								<label for="nuevo_titulo">Precio</label>
+								<input type="number" class="form-control" placeholder="Precio en pesos" name="titulo" id="nuevo_precio" ng-model="nuevo.precio">
+							</div>
+						</div>
+						
+						<div class="row">
+							<div class="form-group col-xs-6">
+								<label for="nuevo_titulo">Fecha de lanzamiento</label>
+								<input type="date" class="form-control" placeholder="Fecha en la que llegó al voceador" name="fecha" id="nuevo_fecha" ng-model="nuevo.fecha">
+							</div>
+							<div class="form-group col-xs-6">
+								<label for="nuevo_adquirido">Marcar como adquirido</label>
+								<button class="btn w100" ng-class="{'active btn-success':nuevo.adquirido == 1, 'btn-warning':nuevo.adquirido == 0}" ng-click="nuevo.adquirido = (nuevo.adquirido == 0) ? 1 : 0"><span class="glyphicon" ng-class="{'glyphicon-ok':nuevo.adquirido == 1, 'glyphicon-minus':nuevo.adquirido == 0}"></span></button>
+								<input type="checkbox" name="adquirido" ng-model="nuevo.adquirido" ng-true-value="1" ng-false-value="0" id="nuevo_adquirido" class="hidden">
+							</div>
+						</div>
+						
+						<hr>
+						<button id="miscomics_button" class="col-xs-12 btn btn-danger" ng-click="pestanaActiva = 'misComicsList'">
+							Ver calendario <b>MisComicsMX</b>
+						</button>
 					</div>
-				</div>
-				
-				<div role="tabpanel" class="tab-pane active" id="about" ng-show="pestanaActiva == 'about'">							
-					<h1>ContaComics v1.0</h1>
 					
-					<p>
-						Para soporte, comentarios y solicitud de funciones envía un email, o contáctanos através del portal.<br>
-					</p>
-					<p class="text-center">
-						<a class="btn btn-info col-xs-12 marginBottom20" href ng-click="sendMail()"><span class="glyphicon glyphicon-envelope marginRight10"></span> {{richEmail}}</a>
-						<a class="btn btn-success col-xs-12" href target="_newcc" ng-click="openSite()"><span class="glyphicon glyphicon-globe marginRight10"></span> {{urlPortal}}</a>
-						<img class="marginTop20" src="css/icono.png" ng-click="masOpcionesTry()" />
-					</p>
+					<div role="tabpanel" id="opciones" ng-if="pestanaActiva == 'opciones'">							
+						<h4><b>JSON de información</b></h4>
+						<!--<div class="form-group">
+							<label for="opcionHost">Host del servidor</label>
+							<input type="text" class="form-control" id="opcionHost" value="{{_host}}" required>
+						</div>
+						<div class="form-group">
+							<label for="opcionDbName">Nombre de la base de datos</label>
+							<input type="text" class="form-control" id="opcionDbName" value="{{_dbName}}" required>
+						</div>
+						<div class="form-group">
+							<label for="opcionDbTableName">Nombre de la tabla de registros</label>
+							<input type="text" class="form-control" id="opcionDbTableName" value="{{_dbTableName}}" required>
+						</div>
+						<div class="form-group">
+							<label for="opcionDbDeleteTableName">Nombre de la tabla de eliminaciones</label>
+							<input type="text" class="form-control" id="opcionDbDeleteTableName" value="{{_dbDeleteTableName}}" required>
+						</div>
+						<div class="form-group row">
+							<div class="col-xs-12"><label for="opcionUltimaActualizacionFecha">Fecha de última sincronización</label></div>
+							<div class="col-xs-6"><input type="date" class="form-control" id="opcionUltimaActualizacionFecha" value="{{_syncFechaFecha}}" required></div>
+							<div class="col-xs-6"><input type="time" class="form-control" id="opcionUltimaActualizacionHora" value="{{_syncFechaHora}}" required></div>
+						</div>
+						<hr>
+						<div class="form-group row">
+							<div class="col-xs-12">
+								<label for="opcionUltimaActualizacionFecha">Ejecutar sentencia SQL</label>
+								<textarea class="form-control marginBottom10" rows="4" id="sqltext" ng-model="sqltext"></textarea>
+								<button id="sqlexec" type="button" class="btn btn-danger" ng-click="sqlexec()"><span class="glyphicon glyphicon-flash"></span> Ejecutar</button>
+							</div>
+						</div>
+						<hr>-->
+						<div class="form-group"><textarea class="form-control f8em" rows="40" id="dumpText">{{registros}}</textarea></div>
+						<!--<button id="dump" type="button" class="btn btn-warning marginBottom20" ng-click="dump()"><span class="glyphicon glyphicon-export"></span> Generar SQL de registros</button>-->
+						
+					</div>
+					
+					<div role="tabpanel" id="misComicsList" ng-if="pestanaActiva == 'misComicsList'">
+						<div class="marginTop10 MCmesesBotones">
+							<button class="btn btn-sm btn-primary pull-left" ng-click="misComicsCambio(-1)">Mes anterior</button>
+							<button class="btn btn-sm btn-primary pull-right" ng-click="misComicsCambio(1)">Siguiente mes</button>
+						</div>
+						<div class="clearfix"></div>
+						
+						<div class="alert alert-warning marginTop20" ng-if="alertCargandoMisComics">Cargando información...</div>
+						<div class="alert alert-danger marginTop20" ng-if="alertCargandoMisComicsError"><span class="glyphicon glyphicon-ban-circle"></span> Hubo un fallo en tu conexión.</div>
+
+						<div class="marginTop10" ng-hide="alertCargandoMisComics || alertCargandoMisComicsError">
+							<div class="marginBottom20 text-center" ng-repeat="(kmc, mc) in misComicsObjetos[misComicsObjetosIndice].data">
+								<div class="mc-panel-titulo negritas">{{mc.fecha}}</div>
+								<div class="mc-panel marginTop0" style="background-image: url({{mco.cover}})" data-toggle="modal" data-target=".mc-modal" ng-repeat="(kmco, mco) in mc.objetos" ng-click="misComicsModal(mco, mc.fechaReal, kmc + '-' + kmco)"  id="mc-panel-{{kmc}}-{{kmco}}">
+									<div class="mc-cover">
+										<div class="mc-volumen">#{{mco.volumen}}</div>
+										<div class="mc-precio">{{mco.precio | currency}}</div>
+									</div>
+									<div class="mc-acciones">
+										<div class="mc-titulo">
+											{{mco.titulo}}
+											<span ng-if="mco.variante.length > 0">({{mco.variante}})</span>
+										</div>
+									</div>
+								</div>
+								
+								<div class="clearfix"></div>
+							</div>
+							
+						</div>
+					</div>
+					
+					<div role="tabpanel" id="about" ng-if="pestanaActiva == 'about'">							
+						<h1>ContaComics v1.0</h1>
+						
+						<p>
+							Para soporte, comentarios y solicitud de funciones envía un email, o contáctanos através del portal.<br>
+						</p>
+						<p class="text-center">
+							<a class="btn btn-info col-xs-12 marginBottom20" href ng-click="sendMail()"><span class="glyphicon glyphicon-envelope marginRight10"></span> {{richEmail}}</a>
+							<a class="btn btn-success col-xs-12" href target="_newcc" ng-click="openSite()"><span class="glyphicon glyphicon-globe marginRight10"></span> {{urlPortal}}</a>
+							<img class="marginTop20" src="css/icono.png" ng-click="masOpcionesTry()" />
+						</p>
+						
+					</div>
 					
 				</div>
 				
 			</div>
-			
 		</div>
-	</div>
-	
-	<div class="modal mc-modal" tabindex="-1" role="dialog" aria-hidden="true">
-		<div class="modal-dialog modal-lg">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-					<h4 class="modal-title" id="McModalTitulo">{{misComicsElegido.titulo}} #{{misComicsElegido.volumen}}</h4>
-				</div>
-				
-				<div class="modal-body">
-					<center class="marginBottom10"><img ng-src="{{misComicsElegido.cover}}" /></center>
-					<button type="button" class="btn btn-primary btn-lg btn-block" ng-click="misComicsAgregar()">Agregar a ContaComics</button>
-					<a href="#" id="mcModalTarget" class="btn btn-default btn-lg btn-block">Ver en MisComics.mx</a>
+		
+		<div class="modal mc-modal" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="McModalTitulo">{{misComicsElegido.titulo}} #{{misComicsElegido.volumen}}</h4>
+					</div>
+					
+					<div class="modal-body">
+						<center class="marginBottom10"><img ng-src="{{misComicsElegido.cover}}" /></center>
+						<button type="button" class="btn btn-primary btn-lg btn-block" ng-click="misComicsAgregar()">Agregar a ContaComics</button>
+						<a href="#" id="mcModalTarget" class="btn btn-default btn-lg btn-block">Ver en MisComics.mx</a>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
-	
-	<div class="modal comic-modal" tabindex="-1" role="dialog" aria-hidden="true">
-		<div class="modal-dialog modal-lg">
-			<div class="modal-content">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-					<h4 class="modal-title" id="McModalTitulo">{{detalle.titulo}}</h4>
-				</div>
-				
-				<div class="modal-body">
-					<table class="marginBottom10 detalle-imagen w100"><tr><td class="text-center"><img ng-src="{{detalle.foto}}" /></td></tr></table>
-					<div class="row">
-						<div class="col-xs-6">Vol. #{{detalle.volumen}}</div>
-						<div class="col-xs-6 text-right">{{detalle.precio | currency}}</div>
+		
+		<div class="modal comic-modal" tabindex="-1" role="dialog" aria-hidden="true">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+						<h4 class="modal-title" id="McModalTitulo">{{detalle.titulo}}</h4>
 					</div>
-					<div class="row" ng-if="detalle.variante.length > 0">
-						<div class="col-xs-12" ng-if="detalle.variante.length > 0">Variante <b>{{detalle.variante}}</b></div>
+					
+					<div class="modal-body">
+						<table class="marginBottom10 detalle-imagen w100"><tr><td class="text-center" id="coverImageContainer"><img ng-src="{{detalle.foto}}" /></td></tr></table>
+						<div id="comicDetalles">
+							<div class="f8em">
+								<div class="row">
+									<div class="col-xs-6">Vol. #{{detalle.volumen}}</div>
+									<div class="col-xs-6 text-right">{{detalle.precio | currency}}</div>
+								</div>
+								<div class="row" ng-if="detalle.variante.length > 0">
+									<div class="col-xs-12" ng-if="detalle.variante.length > 0">Variante <b>{{detalle.variante}}</b></div>
+								</div>
+								<div class="row"><div class="col-xs-12">Fecha de registro:<b><br>{{moment(detalle.fecha_registro).format('MMMM MM, YYYY - h:mm a')}}</b></div></div>
+								<div class="row"><div class="col-xs-12">Fecha de adquisicion:<b><br>{{moment(detalle.fecha_adquisicion).format('MMMM MM, YYYY - h:mm a')}}</b></div></div>
+							</div>
+							<div class="row marginTop20">
+								<div class="col-xs-6"><button class="btn btn-md btn-danger" ng-click="eliminar(detalle)"><i class="glyphicon glyphicon-remove"></i> Eliminar</button></div>
+								<div class="col-xs-6 text-right"><button class="btn btn-md btn-primary disabled"><i class="glyphicon glyphicon-pencil"></i> Editar</button></div>
+							</div>
+						</div>
 					</div>
-					<div class="row"><div class="col-xs-12">Fecha de registro:<b><br>{{detalle.fecha_registro | date:'EEEE, MMMM d, y - h:mm a'}}</b></div></div>
-					<div class="row"><div class="col-xs-12">Fecha de adquisicion:<b><br>{{detalle.fecha_adquisicion | date:'EEEE, MMMM d, - y h:mm a'}}</b></div></div>
 				</div>
 			</div>
 		</div>
-	</div>
-      <script src="http://debug-software.intel.com/target/target-script-min.js#rvrwLS9beXvmQiFwgdfRbAGwISqF5TzG01lSTlCk9IA"></script>
+		<script src="http://debug-software.intel.com/target/target-script-min.js#rvrwLS9beXvmQiFwgdfRbAGwISqF5TzG01lSTlCk9IA"></script>
   </body>
 </html>

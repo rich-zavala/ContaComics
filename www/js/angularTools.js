@@ -14,39 +14,43 @@ comicsApp.filter('filtroObjetos', function() {
 });
 
 //Longpress para eliminaciones
+var scrolled = false;
 comicsApp.directive('onLongPress', function($timeout) {
 	return {
 		restrict: 'A',
 		link: function($scope, $elm, $attrs) {
 			$elm.bind('touchstart', function(evt) {
+				scrolled = false;
 				$($elm).addClass('clicking');
-				// Locally scoped variable that will keep track of the long press
 				$scope.longPress = true;
 
 				// We'll set a timeout for 600 ms for a long press
 				$timeout(function() {
-					if ($scope.longPress) {
-						// If the touchend event hasn't fired,
-						// apply the function given in on the element's on-long-press attribute
+					if (!scrolled && $scope.longPress) {
 						$scope.$apply(function() {
 							$($elm).removeClass('clicking');
 							$scope.$eval($attrs.onLongPress)
 						});
 					}
+					else $($elm).removeClass('clicking');
 				}, 600);
 			});
 
 			$elm.bind('touchend', function(evt) {
 				$($elm).removeClass('clicking');
-				// Prevent the onLongPress event from firing
 				$scope.longPress = false;
-				// If there is an on-touch-end function attached to this element, apply it
 				if ($attrs.onTouchEnd) {
 					$scope.$apply(function() {
 						$scope.$eval($attrs.onTouchEnd)
 					});
 				}
 			});
+			
+			window.onscroll = function (e)
+			{
+				scrolled = true;
+				$('.clicking').removeClass('clicking');
+			}
 		}
 	};
 })

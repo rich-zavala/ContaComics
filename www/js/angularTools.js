@@ -1,23 +1,12 @@
-var comicsApp = angular.module('comicsApp', ['ngStorage']);
-
-//Filtro especial
-comicsApp.filter('filtroObjetos', function() {
-  return function(items, args) {
-		var result = {};
-		angular.forEach(items, function(item, key){
-			var valid = true;
-			for(var i in args) if(valid && item[i] != args[i]) valid = false;
-			if(valid) result[key] = item;
-		});
-		return result;
-  };
-});
+var comicsApp = angular.module('comicsApp', ['ngStorage', 'vs-repeat']);
 
 //Longpress para eliminaciones
+var _scrolled_ = false;
 comicsApp.directive('onLongPress', function($timeout) {
 	return {
 		restrict: 'A',
 		link: function($scope, $elm, $attrs) {
+			_scrolled_ = false;
 			$elm.bind('touchstart', function(evt) {
 				$($elm).addClass('clicking');
 				// Locally scoped variable that will keep track of the long press
@@ -25,7 +14,7 @@ comicsApp.directive('onLongPress', function($timeout) {
 
 				// We'll set a timeout for 600 ms for a long press
 				$timeout(function() {
-					if ($scope.longPress) {
+					if (!_scrolled_ && $scope.longPress) {
 						// If the touchend event hasn't fired,
 						// apply the function given in on the element's on-long-press attribute
 						$scope.$apply(function() {
@@ -46,6 +35,12 @@ comicsApp.directive('onLongPress', function($timeout) {
 						$scope.$eval($attrs.onTouchEnd)
 					});
 				}
+			});
+		
+			//Evitar click > scroll
+			$(window).scroll(function(){
+				_scrolled_ = true;
+				$('.clicking').removeClass('clicking');
 			});
 		}
 	};

@@ -44,8 +44,12 @@ body{
 	text-shadow: 0px 0px 10px white;
 	color: transparent;
 }
-.tabla-registros { margin: 0 -15px; }
-.tabla-registros h4{ margin-left: 15px; }
+.container-fluid {
+	padding-right: 4px;
+	padding-left: 4px;
+}
+/*.tabla-registros { margin: 0 -15px; }
+.tabla-registros h4{ margin-left: 15px; }*/
 .container {
 	padding-right: 6px;
 	padding-left: 6px;
@@ -112,7 +116,7 @@ body{
 	padding: 14px 0 10px 6px;
 	border-top: 1px solid grey;
 }
-.registro, .registro * { transition: all .3s; }
+.registro, .registro * { /*transition: all .3s;*/ }
 .adquiridoEscondido
 {
 	opacity: .1;
@@ -131,7 +135,7 @@ body{
 }
 .serieTitulo{ padding: 8px 15px; }
 .serieDetalle {
-	padding: 2px 26px 2px 10px;
+	padding: 1px 15px 1px 10px;
 	margin: 3px 15px;
 	background-color: rgb(0, 0, 0);
 	border-radius: 4px;

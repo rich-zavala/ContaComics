@@ -67,7 +67,11 @@ app.initEvents = function() {
     else                                                            // else, assume touch events available
         evt = "touchend" ;                                          // not optimum, but works
 
+<<<<<<< HEAD
     el = document.getElementById("id_btnHello") ;
+=======
+    el = document.getElementById("contenedor-principal") ;
+>>>>>>> origin/LocalStorage
     el.addEventListener(evt, myEventHandler, false) ;
 
     // NOTE: ...you can put other miscellaneous init stuff in this function...

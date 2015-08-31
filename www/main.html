@@ -16,8 +16,8 @@
 		<script src="./js/jquery.min.js"></script>
 		<script src="./bootstrap/js/bootstrap.min.js"></script>
 		<script src="./js/comunes.js"></script>
-		<script src="./js/indexeddb.js"></script>
-		<script src="./js/moment.js"></script>
+		<script src="./js/websql.js"></script>
+		<script src="./js/moment.min.js"></script>
 		<script src="./js/typeahead.bundle.js"></script>		
 		<script src="./js/angular.js"></script>
 		<script src="./js/ngStorage.js"></script>
@@ -69,7 +69,8 @@
 								</li>
 							</ul>
 							<div class="tab-content">
-								<div role="tabpanel" id="tab-{{agnoActivo}}" ng-repeat="mes in keysReversed(fechas[agnoActivo])"><tabla-dia ng-repeat="(key, dia) in fechas[agnoActivo][mes] track by key" tabla-dia="{{dia}}" tabla-mes="{{mes}}"></tabla-dia>
+								<div role="tabpanel" id="tab-{{agnoActivo}}" ng-repeat="mes in keysReversed(fechas[agnoActivo])">
+									<tabla-dia ng-repeat="(key, dia) in fechas[agnoActivo][mes] track by key" tabla-dia="{{dia}}" tabla-mes="{{mes}}"></tabla-dia>
 								</div>
 							</div>
 						</div>
@@ -293,6 +294,6 @@
 				</div>
 			</div>
 		</div>
-		<script src="http://debug-software.intel.com/target/target-script-min.js#rvrwLS9beXvmQiFwgdfRbAGwISqF5TzG01lSTlCk9IA"></script>
+		<!--<script src="http://debug-software.intel.com/target/target-script-min.js#rvrwLS9beXvmQiFwgdfRbAGwISqF5TzG01lSTlCk9IA"></script>-->
   </body>
 </html>

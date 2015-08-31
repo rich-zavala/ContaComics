@@ -156,16 +156,15 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 						{
 							var conVariante = (nuevo.variante.length > 0) ? ' (Variante de ' + nuevo.variante + ')' : '';
 							if(typeof intel != 'undefined') intel.xdk.notification.vibrate();
-							alert('Wow wow wow!\n¡Este ya lo tienes!\n' + nuevo.titulo + conVariante + ' #' + nuevo.volumen + ' ($' + repetidos[i].precio + '.00)\n' + $filter('date')(repetidos[i].fecha, 'longDate'));
+							// alert('Wow wow wow!\n¡Este ya lo tienes!\n' + nuevo.titulo + conVariante + ' #' + nuevo.volumen + ' ($' + repetidos[i].precio + '.00)\n' + $filter('date')(repetidos[i].fecha, 'longDate'));
+							c('Wow wow wow!\n¡Este ya lo tienes!\n' + nuevo.titulo + conVariante + ' #' + nuevo.volumen + ' ($' + repetidos[i].precio + '.00)\n' + $filter('date')(repetidos[i].fecha, 'longDate'));
 							if(dbug) c('REPETIDO :( ' + nuevo.titulo);
 						}
 					},
 					error: function(){ c('Error no definido.'); }
 				});
 			},
-			error: function(){
-				c('¡¡Maldita sea!!');
-			}
+			error: function(e){ c(e); }
 		});
 		
 		$scope.nuevo = vacio();
@@ -483,12 +482,14 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 				$scope.series.show = true;
 				$scope.$apply();
 			},
-			error: function(){ c('Error no definido en [obtener] > ' + filtro.agno + '/' + filtro.mes); }
+			error: function(){ er('Error no definido...'); }
 		});
   };
 	
 	/*Vaciar BDD*/
 	$scope.bddVaciar = function(){
+		executeTransaction("TRUNCATE registros");
+		
 		$scope.$storage = $localStorage.$reset();
 		$scope.dbInitiate();
 	}

@@ -38,7 +38,7 @@ var dbOpen = function(params)
 
 		//Crear store
 		if(!db.objectStoreNames.contains("registros")) {
-			db.createObjectStore("registros", { keyPath: "id" });
+			var objectStore = db.createObjectStore("registros", { keyPath: "id" });
 			objectStore.createIndex("id", "id", { unique: true });
 			objectStore.createIndex("adquirido", "adquirido", { unique: false });
 			objectStore.createIndex("agno", "agno", { unique: false });

@@ -1,6 +1,7 @@
 //Variables de sistema
 var dbug = true; //Modo de debugueo
 var nofoto = 'images/no_photo.png';
+var host = 'http://service-contacomics.rhcloud.com/';
 
 var uuid = (typeof intel === 'undefined') ? 'local' : intel.xdk.device.uuid;
 
@@ -16,7 +17,7 @@ function z(n) {
   return s;
 }
 
-/*Código único de registro*/
+/*CÃ³digo Ãºnico de registro*/
 function code(rr){ return (rr.titulo + rr.volumen + rr.variante).replace(/[^a-zA-Z0-9]/g, ''); }
 
 //Formatear fecha
@@ -31,6 +32,18 @@ function unique(array){
 		return index === arr.indexOf(el);
 	});
 }
+
+//Valor mÃ­nimo de un arreglo
+// Array.min = function( array ){
+  // return Math.min.apply( Math, array );
+// };
+
+//Contar elementos de un objeto
+var objsize = function(obj) {
+    var size = 0, key;
+    for(key in obj) if (obj.hasOwnProperty(key)) size++;
+    return size;
+	};
 
 // Function to disable "pull-to-refresh" effect present in some webviews.
 window.addEventListener('load', function() {
@@ -64,7 +77,7 @@ window.addEventListener('load', function() {
 
 //Inicializar app
 var inicializarApp = function(){
-	//Modal de "más detalles"
+	//Modal de "mï¿½s detalles"
 	$('.comic-modal').modal('hide').on('shown.bs.modal', function(){
 		var t = $(this);
 		var header = t.find('.modal-header').outerHeight();

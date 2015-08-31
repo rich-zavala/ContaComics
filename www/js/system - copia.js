@@ -6,7 +6,7 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	$scope.z = z;
 	
 	//Controlador de pestañas
-	$scope.pestanaActiva = 'listado';
+	$scope.pestanaActiva = 'series';
 	$scope.pestanaActivar = function(pestana){ $scope.pestanaActiva = pestana; };
 	$scope.agnoActivo = 0;
 	
@@ -19,7 +19,7 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	$scope.nuevo = vacio();
 	
 	//Cambiar valor de adquisición
-	$scope.adquisicion = function(r, refresh){
+	$scope.adquisicion = function(r){
 		var adquisicion = (r.adquirido === 0) ? 1 : 0;
 		var cambio = false;
 		
@@ -33,14 +33,9 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		{
 			r.adquirido = adquisicion;
 			r.fecha_adquisicion = new Date();
-			
 			addRegistro({
 				data: angular.copy(r),
 				put: true,
-				success: function(){
-					//Actualizar directivas
-					if(typeof refresh != 'undefined' && refresh) $scope.$broadcast('registrosAlterados', r);
-				},
 				error: function(){
 					alert('Ha ocurrido un error.');
 					$scope.exitApp();
@@ -66,9 +61,7 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 			removeRegistro({
 				id: r.id,
 				success: function(){
-					/*var k = 0;
-					for(var i in $scope.registros) if($scope.registros[i].id == r.id) k = i;
-					$scope.registros.splice(k, 1);
+					delete $scope.registros[r.id];
 					
 					var eliminarDia = true;
 					var eliminarMes = true;
@@ -87,16 +80,12 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 					if(eliminarMes) delete $scope.fechas[r.agno][mes]; //No hay mes: Eliminarlo
 					if(eliminarAgno) delete $scope.fechas[r.agno]; //No hay año: Eliminarlo
 					if(objsize($scope.fechas) > 0) $scope.pestanaAgnoActivo($scope.keysReversed($scope.fechas)[0]); //Si no hay año, seleccionar año disponible
-					*/
+					
 					//Componer sumatorias
 					$scope.sumar(r.agno, r.mes, r.dia, -r.precio);
-					
-					$scope.$apply();
-					// r = null; //Liberar memoria
 					$('.comic-modal').modal('hide');
-					
-					//Actualizar directivas
-					$scope.$broadcast('registrosAlterados', r);
+					r = null; //Liberar memoria
+					$scope.$apply();
 				},
 				error: function(){ alert('Ha ocurrido un error. Intente de nuevo más tarde.'); }
 			});
@@ -106,7 +95,6 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	
 	//FORMULARIO > Registrar. Validar y toda la cosa
 	$scope.registrar = function(desdeMisComics){
-		// c($scope.nuevo);
 		if(angular.isUndefined(desdeMisComics)) desdeMisComics = false;
 		if(!desdeMisComics) $scope.nuevo.titulo = $('#nuevo_titulo').val(); //Reparar valores del arreglo $scope.nuevos. Corta los valores del título y no sé porqué :(
 		var nuevo = angular.copy($scope.nuevo);
@@ -143,9 +131,6 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 					//TypeAhead
 					if($scope.typeOptions.indexOf(nuevo.titulo) < 0) $scope.typeOptions.push(nuevo.titulo);
 					$scope.typeAheadSet();
-					
-					//Actualizar directivas
-					$scope.$broadcast('registrosAlterados', nuevo);
 				}, 1);
 			},
 			repetido: function(){
@@ -172,9 +157,21 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	}
 	
 	/*Inicializar la BDD*/
-	$scope.registros = [];
 	$scope.dbInitiate = function(){
-		// dbOpen();
+		//Inicializar registros desde IndexedDB
+		dbOpen({
+			success: function(){
+				getRegistro({
+					success: function(data){
+						$scope.registros = data;
+						$scope.alertCargando = false;
+						$scope.$apply();
+					},
+					error: function(){ c('Error no definido.'); }
+				});
+			},
+			error: function(){ $('body').html('<h1>Error catastrófico en BDD.</h1>'); }
+		});		
 		
 		//Objetos de localStorage
 		if(typeof $localStorage.fechas == 'undefined') $localStorage.fechas = {};
@@ -184,47 +181,16 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		$scope.sumatorias = $localStorage.sumatorias;
 		$scope.typeOptions = $localStorage.typeOptions;
 		
-		//Agregar títulos al typeAhead
-		$scope.typeAheadSet();
-		$scope.alertCargando = false;
-		
 		//Seleccionar primer año
 		if(objsize($scope.fechas) > 0) $scope.pestanaAgnoActivo($scope.keysReversed($scope.fechas)[0]);
-		// $scope.$apply();
 		
-		//Inicializar registros desde IndexedDB
-		/*dbOpen({
-			success: function(){
-				getRegistro({
-					success: function(data){
-						//Dividir los registros en año / mes / día
-						// for(var i in data)
-						// {
-							// if(angular.isUndefined($scope.registros[data[i].agno])) $scope.registros[data[i].agno] = {};
-							// if(angular.isUndefined($scope.registros[data[i].agno][data[i].mes])) $scope.registros[data[i].agno][data[i].mes] = {};
-							// if(angular.isUndefined($scope.registros[data[i].agno][data[i].mes][data[i].dia])) $scope.registros[data[i].agno][data[i].mes][data[i].dia] = [];
-							// $scope.registros[data[i].agno][data[i].mes][data[i].dia].push(data[i]);
-						// }
-						$scope.registros = $.map(data, function(value, index) { return [value]; });
-
-						//Seleccionar primer año
-						if(objsize($scope.fechas) > 0) $scope.pestanaAgnoActivo($scope.keysReversed($scope.fechas)[0]);
-						
-						$scope.alertCargando = false;
-						$scope.$apply();
-					},
-					error: function(){ c('Error no definido.'); }
-				});
-			},
-			error: function(){ $('body').html('<h1>Error catastrófico en BDD.</h1>'); }
-		});*/
+		//Agregar títulos al typeAhead
+		$scope.typeAheadSet();
 	};
 	
 	//Cambiar año activo
 	$scope.pestanaAgnoActivo = function(i){
 		$scope.agnoActivo = i;
-		$scope.filtroRegistros(-1); //Resetear filtros
-		$scope.regs = $scope.filteredObjects($scope.registros, { agno: i });
 	};
 
 	//Crear sumatorias por día
@@ -236,15 +202,13 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	
 	//Toogle de vista según adquisición
 	$scope.filtroActivo = -1;
-	$scope.filtroRegistros = function(filtro){
-		$scope.filtroActivo = filtro;
-		// $scope.pestanaAgnoActivo($scope.agnoActivo);
-	};
+	$scope.filtroRegistros = function(filtro){ $scope.filtroActivo = filtro; };
 	
 	//Generar objeto de filtro general
 	$scope.filteredObjects = function(registros, args){
 		if($scope.filtroActivo >= 0) args.adquirido = $scope.filtroActivo;
 		var r = $filter('filtroObjetos')(registros, args);
+		c('filtrado');
 		return r;
 	}
 	
@@ -417,16 +381,6 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		//Mostrar pestaña de MisComics y cargar listado
 		if(newVal == 'misComicsList') $scope.misComicsLoad();
 		if(newVal == 'formulario') setTimeout(function(){ $('#nuevo_titulo').focus(); }, 300);
-		if(newVal == 'opciones')
-		{
-			getRegistro({
-					success: function(data){
-						$scope.registrosTodos = data;
-						$scope.$apply();
-					},
-					error: function(){ c('Error no definido en [obtener] > ' + filtro.agno + '/' + filtro.mes); }
-				});
-		}
 		
 		window.scrollTo(0, 0);
 	});
@@ -458,33 +412,25 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	$scope.objsize = objsize;
 	
 	/*22 ago 2015 ¡SERIES!*/
-	$scope.series = {};
+	// $scope.series = {};
 	$scope.seriesGenerar = function(serie){
-		$scope.series = { titulo: $scope.series.titulo, serie: serie, registros: [], volumenes: 0, importe: 0, show: false };
-		var volumenes = {};		
-		getRegistro({
-			data: { titulo: serie },
-			success: function(data){
-				volumenes = data;
-				
-				//Ordenar por volumen
-				$scope.series.registros = [];
-				var numeros = [];
-				for(var i in volumenes) numeros.push(volumenes[i].volumen);
-				numeros = numeros.sort(function(a, b){return a-b});
-				for(var i in numeros)
-						for(var vi in volumenes)
-								if(volumenes[vi].volumen == numeros[i])
-								{
-									$scope.series.registros.push(volumenes[vi]);
-									$scope.series.volumenes++;
-									$scope.series.importe += volumenes[vi].precio;
-								}
-				$scope.series.show = true;
-				$scope.$apply();
-			},
-			error: function(){ c('Error no definido en [obtener] > ' + filtro.agno + '/' + filtro.mes); }
-		});
+		$scope.series = { serie: serie, registros: [], volumenes: 0, importe: 0 };
+		var volumenes = {};
+		for(var i in $scope.registros) if($scope.registros[i].titulo == serie) volumenes[$scope.registros[i].id] = $scope.registros[i];
+		
+		//Ordenar por volumen
+		$scope.series.registros = [];
+		var numeros = [];
+		for(var i in volumenes) numeros.push(volumenes[i].volumen);
+		numeros = numeros.sort(function(a, b){return a-b});
+		for(var i in numeros)
+				for(var vi in volumenes)
+						if(volumenes[vi].volumen == numeros[i])
+						{
+							$scope.series.registros.push(volumenes[vi]);
+							$scope.series.volumenes++;
+							$scope.series.importe += volumenes[vi].precio;
+						}
   };
 	
 	/*Vaciar BDD*/
@@ -508,7 +454,7 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 			// if(dbug) c($scope.nuevo);
 			$scope.registrar();
 			
-			// if(i > 10) break;
+			// if(i > 100) break;
 		}
 	}
 }]);

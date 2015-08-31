@@ -5,7 +5,7 @@
       "projectTypeName": "com.intel.xdk.projecttype.jsapp",
       "src": "https://appcenter.html5tools-software.intel.com/api/v2.0/redirect/projectrenderers/release-2015-ww32/jsapp/templates-blank-cordova-project/sample.zip",
       "projectGuid": "f829aaed-6b24-4130-8081-604a92c593ea",
-      "lastModifiedDate": 1440391438239,
+      "lastModifiedDate": 1440904664832,
       "creationDate": 1440391302144
     },
     "XDK-app-designer": "false",
@@ -29,6 +29,24 @@
       {
         "id": "org.apache.cordova.splashscreen",
         "version": "0.3.5",
+        "selectedState": "Included",
+        "data": {},
+        "paramvals": {},
+        "dependsOn": [],
+        "dependedBy": []
+      },
+      {
+        "id": "org.apache.cordova.vibration",
+        "version": "0.3.12",
+        "selectedState": "Included",
+        "data": {},
+        "paramvals": {},
+        "dependsOn": [],
+        "dependedBy": []
+      },
+      {
+        "id": "org.apache.cordova.dialogs",
+        "version": "0.2.11",
         "selectedState": "Included",
         "data": {},
         "paramvals": {},

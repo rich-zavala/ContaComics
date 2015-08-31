@@ -74,16 +74,10 @@ var addRegistro = function(params) {
 	else //Actualización
 	{
 		var sets = [];
-		// c(campos);
-		// c(values);
 		for(var i in campos)
-		{
-			// c(values[i]);
 			sets.push(campos[i] + " = '" + values[i].toString().replace("\'", "\\\'") + "'")
-		}
 		params.query = 'UPDATE registros SET ' + sets.join(',') + ' WHERE id = "' + params.data.id + '"';
 	}
-	c(params.query);
 	executeTransaction(params);
 }
 
@@ -108,42 +102,26 @@ var getRegistro = function(params) {
 	params.query = 'SELECT * FROM registros';
 	if(where.length > 0) params.query += ' WHERE ' + where.join(' AND ');
 	
-	var transaction = db.transaction(function (t) {
-		w("Creando tabla...");
+	var transaction = db.transaction(function(t){
+		w('Transaction SELECT...');
+		w(params.query);
 		t.executeSql(params.query, [], function(tx, results){
-			
-			c(results);
 			var resultados = [];
 			var len = results.rows.length, i;
 			for (i = 0; i < len; i++) resultados.push(results.rows.item(i));
 			params.success(resultados);
 			
 			trc();
-		}, errorHandler);
-	});
-	
-	/*var transaction = db.transaction(function(t){
-		w('Transaction SELECT...');
-		w(params.query);
-		t.executeSql(params.query, [], function(tx, results){
-			var resultados = [];
-			var len = results.rows.length, i;
-			for (i = 0; i < len; i++) resultados.push(results.rows[i]);
-			params.success(resultados);
-			
-			trc();
 		});
 	}, function(e){
 		trc();
-		c(e);
 		
 		var error = e.message;
 		if(error.indexOf('constraint') >= 0 && typeof params.repetido == 'function')
 			params.repetido();
 		else
 			params.error(e);
-	});*/
-	c(transaction);
+	});
 	
 	dbTransactions.push(transaction);
 }

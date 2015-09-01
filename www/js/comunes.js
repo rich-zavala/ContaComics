@@ -1,5 +1,5 @@
 //Variables de sistema
-var dbug = false; //Modo de debugueo
+var dbug = true; //Modo de debugueo
 var nofoto = 'images/no_photo.png';
 var host = 'http://service-contacomics.rhcloud.com/';
 

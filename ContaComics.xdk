@@ -5,7 +5,7 @@
       "projectTypeName": "com.intel.xdk.projecttype.jsapp",
       "src": "https://appcenter.html5tools-software.intel.com/api/v2.0/redirect/projectrenderers/release-2015-ww32/jsapp/templates-blank-cordova-project/sample.zip",
       "projectGuid": "f829aaed-6b24-4130-8081-604a92c593ea",
-      "lastModifiedDate": 1440904664832,
+      "lastModifiedDate": 1441130862339,
       "creationDate": 1440391302144
     },
     "XDK-app-designer": "false",
@@ -147,7 +147,7 @@
           "android-targetSdkVersion": "19",
           "android-installLocation": "auto"
         },
-        "isActive_": false,
+        "isActive_": true,
         "appName_": "ContaComics",
         "appID_": "xdk.intel.blank.template",
         "appAccess_": [

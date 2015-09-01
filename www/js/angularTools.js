@@ -73,11 +73,14 @@ comicsApp.directive('onDoubleClick', function($timeout) {
 
 comicsApp.directive("tablaDia", ['$timeout', function($timeout) {
 	return {
-		scope: true,
-		controller: function($scope, $element, $attrs) {
+		// scope: true,
+		controller: function($scope, $element, $attrs) {			
 			$scope.registros = [];
 			$scope.show = false;
+			
 			var obtener = function(){
+				$scope.registros = [];
+				$scope.show = false;
 				$scope.tablaAgno = angular.copy($scope.agnoActivo);
 				var filtro = {
 					agno: parseInt($scope.agnoActivo),
@@ -95,9 +98,7 @@ comicsApp.directive("tablaDia", ['$timeout', function($timeout) {
 					error: function(){ c('Error no definido en [obtener] > ' + filtro.agno + '/' + filtro.mes); }
 				});
 			}
-			// var obtener = function(){ c($attrs); }
-			
-			// c($scope.$last);
+
 			if ($scope.$last) {
 				$timeout(function() {
 					obtener();
@@ -110,7 +111,9 @@ comicsApp.directive("tablaDia", ['$timeout', function($timeout) {
 			});
 			
 			//Detectar cambios
-			$scope.$on('registrosAlterados', function(event, args){ if(args.mes == $attrs.tablaMes && args.dia == $attrs.tablaDia) obtener(); });
+			$scope.$on('registrosAlterados', function(event, args){
+				if(args.mes == $attrs.tablaMes && args.dia == $attrs.tablaDia) obtener();
+			});
 		},
     restrict: 'E',
     templateUrl: 'templates/tabla_dia.html'

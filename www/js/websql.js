@@ -26,6 +26,10 @@ var dbOpen = function(params)
 	db.transaction(function (t) {
 		w("Creando tabla...");
 		t.executeSql('CREATE TABLE IF NOT EXISTS registros ( "id" TEXT NOT NULL, "titulo" TEXT, "variante" TEXT, "volumen" INTEGER, "precio" INTEGER, "adquirido" INTEGER, "agno" INTEGER, "mes" INTEGER, "dia" INTEGER, "fecha" TEXT, "fecha_adquisicion" TEXT, "fecha_registro" TEXT, PRIMARY KEY ("id") )');
+		if(typeof params.success == 'function') params.success();
+	},
+	function(e){
+		if(typeof params.error == 'function') params.error(e);
 	});
 }
 
@@ -36,22 +40,31 @@ success: función de ejecución al registrar correctamente
 error: función de ejecución si sucede un error
 query: cadena de ejecución
 */
-var dbTransactions = [];
-var dbCompletes = 0;
-var notificationOn = false;
 var executeTransaction = function(params)
 {
-	db.transaction(function(t){
-		w('Transaction...');
-		t.executeSql(params.query, []);
-		params.success();
-	}, function(e){
-		var error = e.message;
-		if(error.indexOf('constraint') >= 0 && typeof params.repetido == 'function')
-			params.repetido();
-		else
-			params.error(e);
-	});
+	var ejecutar = function()
+	{
+		db.transaction(function(t){
+			w('Transaction...');
+			t.executeSql(params.query);
+			params.success();
+		}, function(e){
+			var error = e.message;
+			if(error.indexOf('constraint') >= 0 && typeof params.repetido == 'function')
+				params.repetido();
+			else
+				er(params.query);
+				params.error(e);
+		});
+	}
+	
+	if(typeof db == 'undefined' || !db.transaction) //Inicializar si es necesario
+		dbOpen({
+			success: ejecutar,
+			error: params.error
+		});
+	else
+		ejecutar();
 }
 
 
@@ -74,8 +87,7 @@ var addRegistro = function(params) {
 	else //Actualización
 	{
 		var sets = [];
-		for(var i in campos)
-			sets.push(campos[i] + " = '" + values[i].toString().replace("\'", "\\\'") + "'")
+		for(var i in campos) if(campos[i] != '$$hashKey') sets.push(campos[i] + " = '" + values[i].toString().replace("\'", "\\\'") + "'")
 		params.query = 'UPDATE registros SET ' + sets.join(',') + ' WHERE id = "' + params.data.id + '"';
 	}
 	executeTransaction(params);
@@ -89,41 +101,48 @@ error: función de ejecución si sucede un error
 data: parámetros que debe tener el registro
 */
 var getRegistro = function(params) {
-	//Mostrar notificación
-	if(!notificationOn)
-	{
-		if(typeof navigator.notification != 'undefined') navigator.notification.activityStart('', 'Cargando información...');
-		notificationOn = true;
-	}
-	
 	var where = [];
 	if(typeof params.data != 'undefined') for(var campo in params.data) where.push(campo + '="' + params.data[campo] + '"');
 	
 	params.query = 'SELECT * FROM registros';
 	if(where.length > 0) params.query += ' WHERE ' + where.join(' AND ');
 	
-	var transaction = db.transaction(function(t){
-		w('Transaction SELECT...');
-		w(params.query);
-		t.executeSql(params.query, [], function(tx, results){
-			var resultados = [];
-			var len = results.rows.length, i;
-			for (i = 0; i < len; i++) resultados.push(results.rows.item(i));
-			params.success(resultados);
+	//Preparar transacción
+	var ejecutar = function()
+	{
+		var transaction = db.transaction(function(t){
+			w('Transaction SELECT...');
+			// w(params.query);
+			t.executeSql(params.query, [], function(tx, results){
+				var resultados = [];
+				var len = results.rows.length, i;
+				for (i = 0; i < len; i++) resultados.push(angular.copy(results.rows.item(i)));
+				params.success(resultados);
+				
+				ccNotifEnd();
+			});
+		}, function(e){
+			ccNotifEnd();
 			
-			trc();
+			var error = e.message;
+			if(error.indexOf('constraint') >= 0 && typeof params.repetido == 'function')
+				params.repetido();
+			else
+				params.error(e);
 		});
-	}, function(e){
-		trc();
 		
-		var error = e.message;
-		if(error.indexOf('constraint') >= 0 && typeof params.repetido == 'function')
-			params.repetido();
-		else
-			params.error(e);
-	});
+		//Mostrar notificación
+		dbTransactions.push(transaction);
+		ccNotifInit();
+	}
 	
-	dbTransactions.push(transaction);
+	if(typeof db == 'undefined' || !db.transaction) //Inicializar si es necesario
+		dbOpen({
+			success: ejecutar,
+			error: params.error
+		});
+	else
+		ejecutar();
 }
 
 /*
@@ -140,28 +159,36 @@ var removeRegistro = function(params){
 }
 
 //Contabilizador de transacciones
-var trc = function(){
+var notificationOn = false;
+var dbCompletes = 0;
+var dbTransactions = [];
+var ccNotifInit = function(){
+	if(!notificationOn && typeof navigator.notification != 'undefined') navigator.notification.progressStart('', 'Cargando información...');
+	notificationOn = true;
+}
+
+var ccNotifEnd = function(){
 	dbCompletes++;
-	
-	//Ocultar notificación
-	if(dbTransactions.length == dbCompletes)
+	w(dbTransactions.length+' == '+dbCompletes);
+	if(dbTransactions.length == dbCompletes) //Ocultar notificación
 	{
-		if(typeof navigator.notification != 'undefined') navigator.notification.activityStop();
-		notificationOn = false;
+		if(typeof navigator.notification != 'undefined') navigator.notification.progressStop();
 		w('Fin! :D');
+
+		ccNotifReset();
+	}
+	else //Progreso
+	{
+		var v = Math.ceil((dbCompletes / dbTransactions.length) * 100);
+		if(typeof navigator.notification != 'undefined') navigator.notification.progressValue(v);
 	}
 }
 
-function errorHandler(transaction, error)
-{
-    // error.message is a human-readable string.
-    // error.code is a numeric error code
-    alert('Oops.  Error was '+error.message+' (Code '+error.code+')');
- 
-    // Handle errors here
-    var we_think_this_error_is_fatal = true;
-    if (we_think_this_error_is_fatal) return true;
-    return false;
+var ccNotifReset = function(){
+	//Reseteo
+	notificationOn = false;
+	dbTransactions = [];
+	dbCompletes = 0;
 }
 
 /*Herramientas*/

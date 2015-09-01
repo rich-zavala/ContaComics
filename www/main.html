@@ -29,7 +29,7 @@
 			<nav class="navbar-fixed-top navbar-inverse">
 				<span class="navbar-brand negritas"></span>
 				<div class="btn-group pull-right">
-					<button type="button" class="btn btn-default navbar-btn" ng-disabled="pestanaActiva == 'listado'" ng-click="pestanaActivar('listado')"><span class="glyphicon glyphicon-tasks"></span></button>
+					<button type="button" class="btn navbar-btn" ng-class="{'btn-default': filtroActivo == -1, 'btn-warning': filtroActivo == 0, 'btn-success': filtroActivo == 1}" ng-disabled="pestanaActiva == 'listado'" ng-click="pestanaActivar('listado')"><span class="glyphicon glyphicon-tasks"></span></button>
 					<button type="button" class="btn btn-default navbar-btn" ng-disabled="pestanaActiva == 'formulario'" ng-click="pestanaActivar('formulario')"><span class="glyphicon glyphicon-plus"></span></button>
 					<button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="glyphicon glyphicon-cog"></span></button>
 					<ul class="dropdown-menu" role="menu">
@@ -91,7 +91,7 @@
 									<li class="list-group-item padding0 noBG" ng-repeat="serie in typeOptions | filter : series.titulo | orderBy:''" ng-class="{active : series.serie == serie}">
 										<div class="serieTitulo" ng-click="seriesGenerar(serie)" ng-class="{negritas : series.serie == serie}">{{serie}}</div>
 										<div class="marginBottom10 f13" ng-if="series.serie == serie">
-											<div class="seriesCargando f13 text-muted" ng-if="!series.show"><span class="glyphicon glyphicon-transfer marginRight10"></span> Cargando...</div>
+											<div class="seriesCargando f13" ng-if="!series.show"><span class="glyphicon glyphicon-transfer marginRight10"></span> Cargando...</div>
 											<div ng-if="series.show">
 												<div class="serieDetalle" ng-repeat="r in series.registros" on-long-press="detallesShow(r)" on-double-click="detallesShow(r)">
 													#{{r.volumen}}
@@ -190,9 +190,15 @@
 							</div>
 						</div>
 						<hr>-->
-						<div class="form-group"><textarea class="form-control f8em" rows="30" id="dumpText">{{registrosTodos}}</textarea></div>
+						<div class="form-group"><textarea class="form-control f8em" rows="24" id="dumpText">{{registrosTodos}}</textarea></div>
 						<!--<button id="dump" type="button" class="btn btn-warning marginBottom20" ng-click="dump()"><span class="glyphicon glyphicon-export"></span> Generar SQL de registros</button>-->
-						
+						<div class="form-group">
+							<div class="checkbox">
+								<label>
+									<input ng-model="dbug" type="checkbox" ng-click="dbugMode(dbug)"> Modo de debugueo
+								</label>
+							</div>
+						</div>
 					</div>
 					
 					<div role="tabpanel" id="misComicsList" ng-if="pestanaActiva == 'misComicsList'">

@@ -25,24 +25,27 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		
 		//Mensaje de información
 		var msg = 'Fecha de registro:\n' + moment(r.fecha_registro).format('MMMM MM, YYYY - h:mm a') + ' \n\nFecha adquisición:\n' + moment(r.fecha_adquisicion).format('MMMM MM, YYYY - h:mm a');
-		
-		if(adquisicion === 0 && confirm('Confirme el cambio de adquisición:\n' + msg)) cambio = true; //Remover
-		else if(adquisicion == 1) cambio = true;
+		if(adquisicion === 0 && confirm('Confirme el cambio de adquisición:\n' + msg))
+			var cambio = true;
+		else if(adquisicion == 1)
+			cambio = true;
 		
 		if(cambio)
 		{
+			// var r = angular.copy(r)
 			r.adquirido = adquisicion;
 			r.fecha_adquisicion = new Date();
 			
 			addRegistro({
-				data: angular.copy(r),
+				data: r,
 				put: true,
 				success: function(){
 					//Actualizar directivas
 					if(typeof refresh != 'undefined' && refresh) $scope.$broadcast('registrosAlterados', r);
 				},
-				error: function(){
+				error: function(e){
 					alert('Ha ocurrido un error.');
+					c(e);
 					$scope.exitApp();
 				}
 			});
@@ -53,7 +56,7 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	
 	/*Eliminación de registro*/
 	$scope.eliminar = function(r){
-		var r = angular.copy(r);
+		var r = angular.copy(r);		
 		if(confirm('Confirme la eliminación de este registro:\n' + r.titulo + ' #' + r.volumen))
 		{
 			// var eliminado = false;
@@ -66,33 +69,10 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 			removeRegistro({
 				id: r.id,
 				success: function(){
-					/*var k = 0;
-					for(var i in $scope.registros) if($scope.registros[i].id == r.id) k = i;
-					$scope.registros.splice(k, 1);
-					
-					var eliminarDia = true;
-					var eliminarMes = true;
-					var eliminarAgno = true;
-					for(var i in $scope.registros)
-					{
-						if(eliminarDia && $scope.registros[i].agno == r.agno && $scope.registros[i].mes == r.mes && $scope.registros[i].dia == r.dia)
-							eliminarDia = eliminarMes = eliminarAgno = false;
-						else if(eliminarMes && $scope.registros[i].agno == r.agno && $scope.registros[i].mes == r.mes)
-							eliminarMes = eliminarAgno = false;
-						else if(eliminarAgno && $scope.registros[i].agno == r.agno)
-							eliminarAgno = false;
-					}
-					
-					if(eliminarDia) $scope.fechas[r.agno][mes].splice($scope.fechas[r.agno][mes].indexOf(r.dia), 1); //No hay día: Eliminarlo
-					if(eliminarMes) delete $scope.fechas[r.agno][mes]; //No hay mes: Eliminarlo
-					if(eliminarAgno) delete $scope.fechas[r.agno]; //No hay año: Eliminarlo
-					if(objsize($scope.fechas) > 0) $scope.pestanaAgnoActivo($scope.keysReversed($scope.fechas)[0]); //Si no hay año, seleccionar año disponible
-					*/
 					//Componer sumatorias
 					$scope.sumar(r.agno, r.mes, r.dia, -r.precio);
 					
 					$scope.$apply();
-					// r = null; //Liberar memoria
 					$('.comic-modal').modal('hide');
 					
 					//Actualizar directivas
@@ -106,7 +86,6 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	
 	//FORMULARIO > Registrar. Validar y toda la cosa
 	$scope.registrar = function(desdeMisComics){
-		// c($scope.nuevo);
 		if(angular.isUndefined(desdeMisComics)) desdeMisComics = false;
 		if(!desdeMisComics) $scope.nuevo.titulo = $('#nuevo_titulo').val(); //Reparar valores del arreglo $scope.nuevos. Corta los valores del título y no sé porqué :(
 		var nuevo = angular.copy($scope.nuevo);
@@ -156,8 +135,8 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 						{
 							var conVariante = (nuevo.variante.length > 0) ? ' (Variante de ' + nuevo.variante + ')' : '';
 							if(typeof intel != 'undefined') intel.xdk.notification.vibrate();
-							// alert('Wow wow wow!\n¡Este ya lo tienes!\n' + nuevo.titulo + conVariante + ' #' + nuevo.volumen + ' ($' + repetidos[i].precio + '.00)\n' + $filter('date')(repetidos[i].fecha, 'longDate'));
-							c('Wow wow wow!\n¡Este ya lo tienes!\n' + nuevo.titulo + conVariante + ' #' + nuevo.volumen + ' ($' + repetidos[i].precio + '.00)\n' + $filter('date')(repetidos[i].fecha, 'longDate'));
+							alert('Wow wow wow!\n¡Este ya lo tienes!\n' + nuevo.titulo + conVariante + ' #' + nuevo.volumen + ' ($' + repetidos[i].precio + '.00)\n' + $filter('date')(repetidos[i].fecha, 'longDate'));
+							// c('Wow wow wow!\n¡Este ya lo tienes!\n' + nuevo.titulo + conVariante + ' #' + nuevo.volumen + ' ($' + repetidos[i].precio + '.00)\n' + $filter('date')(repetidos[i].fecha, 'longDate'));
 							if(dbug) c('REPETIDO :( ' + nuevo.titulo);
 						}
 					},
@@ -173,8 +152,6 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	/*Inicializar la BDD*/
 	$scope.registros = [];
 	$scope.dbInitiate = function(){
-		// dbOpen();
-		
 		//Objetos de localStorage
 		if(typeof $localStorage.fechas == 'undefined') $localStorage.fechas = {};
 		if(typeof $localStorage.sumatorias == 'undefined') $localStorage.sumatorias = {};
@@ -189,40 +166,16 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		
 		//Seleccionar primer año
 		if(objsize($scope.fechas) > 0) $scope.pestanaAgnoActivo($scope.keysReversed($scope.fechas)[0]);
-		// $scope.$apply();
 		
-		//Inicializar registros desde IndexedDB
-		/*dbOpen({
-			success: function(){
-				getRegistro({
-					success: function(data){
-						//Dividir los registros en año / mes / día
-						// for(var i in data)
-						// {
-							// if(angular.isUndefined($scope.registros[data[i].agno])) $scope.registros[data[i].agno] = {};
-							// if(angular.isUndefined($scope.registros[data[i].agno][data[i].mes])) $scope.registros[data[i].agno][data[i].mes] = {};
-							// if(angular.isUndefined($scope.registros[data[i].agno][data[i].mes][data[i].dia])) $scope.registros[data[i].agno][data[i].mes][data[i].dia] = [];
-							// $scope.registros[data[i].agno][data[i].mes][data[i].dia].push(data[i]);
-						// }
-						$scope.registros = $.map(data, function(value, index) { return [value]; });
-
-						//Seleccionar primer año
-						if(objsize($scope.fechas) > 0) $scope.pestanaAgnoActivo($scope.keysReversed($scope.fechas)[0]);
-						
-						$scope.alertCargando = false;
-						$scope.$apply();
-					},
-					error: function(){ c('Error no definido.'); }
-				});
-			},
-			error: function(){ $('body').html('<h1>Error catastrófico en BDD.</h1>'); }
-		});*/
+		//Opciones de debugueo
+		if(typeof $localStorage.dbugOpt == 'undefined') $localStorage.dbugOpt = false;
+		$scope.dbug = dbug = $localStorage.dbugOpt;
 	};
 	
 	//Cambiar año activo
 	$scope.pestanaAgnoActivo = function(i){
 		$scope.agnoActivo = i;
-		$scope.filtroRegistros(-1); //Resetear filtros
+		// $scope.filtroRegistros(-1); //Resetear filtros
 		$scope.regs = $scope.filteredObjects($scope.registros, { agno: i });
 	};
 
@@ -486,9 +439,15 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		});
   };
 	
+	/*Modo de debugueo*/
+	$scope.dbugMode = function(deb){
+		$scope.dbug = 55;
+		dbug = $scope.dbug = $localStorage.dbugOpt = deb;
+	}
+	
 	/*Vaciar BDD*/
 	$scope.bddVaciar = function(){
-		executeTransaction("TRUNCATE registros");
+		executeTransaction({ query: "DELETE FROM registros", success: function(){c('Deleted');}, error: function(e){err(e);} });
 		
 		$scope.$storage = $localStorage.$reset();
 		$scope.dbInitiate();

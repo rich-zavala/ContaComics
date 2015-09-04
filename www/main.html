@@ -9,57 +9,45 @@
 		<link rel="stylesheet" href="css/angular-csp.css">
 		<link rel="stylesheet" href="css/style.css">
 		<link rel="stylesheet" href="css/typeahead.css">
-		<script src="cordova.js"></script>          <!-- phantom library, needed for Cordova api calls, added during build -->
-		<script src="js/app.js"></script>           <!-- recommended location of your JavaScript code relative to other JS files -->
-		<script src="xdk/init-dev.js"></script>     <!-- normalizes device and document ready events, see README for details -->
-		<script src="./js/app.js"></script>
-		<script src="./js/jquery.min.js"></script>
-		<script src="./bootstrap/js/bootstrap.min.js"></script>
-		<script src="./js/comunes.js"></script>
-		<script src="./js/websql.js"></script>
-		<script src="./js/moment.min.js"></script>
-		<script src="./js/typeahead.bundle.js"></script>		
-		<script src="./js/angular.js"></script>
-		<script src="./js/ngStorage.js"></script>
-		<script src="./js/angularTools.js"></script>
-		<script src="./js/system.js"></script>
+		<script src="cordova.js"></script>
 	</head>
   <body ng-controller="ComicsAppCtrl">
 		<div class="container-fluid">
 			<nav class="navbar-fixed-top navbar-inverse">
 				<span class="navbar-brand negritas"></span>
-				<div class="btn-group pull-right">
-					<button type="button" class="btn navbar-btn" ng-class="{'btn-default': filtroActivo == -1, 'btn-warning': filtroActivo == 0, 'btn-success': filtroActivo == 1}" ng-disabled="pestanaActiva == 'listado'" ng-click="pestanaActivar('listado')"><span class="glyphicon glyphicon-tasks"></span></button>
-					<button type="button" class="btn btn-default navbar-btn" ng-disabled="pestanaActiva == 'formulario'" ng-click="pestanaActivar('formulario')"><span class="glyphicon glyphicon-plus"></span></button>
-					<button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="glyphicon glyphicon-cog"></span></button>
-					<ul class="dropdown-menu" role="menu">
-						<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(-1)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == -1, 'glyphicon-unchecked' : filtroActivo != -1 }"></span> Ver todos</a></li>
-						<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(0)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == 0, 'glyphicon-unchecked' : filtroActivo != 0 }"></span> Ver no adquiridos</a></li>
-						<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(1)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == 1, 'glyphicon-unchecked' : filtroActivo != 1 }"></span> Ver adquiridos</a></li>
-						<li ng-if="pestanaActiva == 'listado'" class="divider"></li>
-						<li><a href ng-click="bddVaciar()" ng-if="dbug"><span class="glyphicon glyphicon-repeat marginRight10"></span> Vaciar BDD</a></li>
-						<li><a href ng-click="bddEjemplos()" ng-if="dbug"><span class="glyphicon glyphicon-star marginRight10"></span> Llenar BDD</a></li>
-						<li><a href ng-click="pestanaActivar('series')"><span class="glyphicon glyphicon-book marginRight10"></span> Series</a></li>
-						<li ng-if="pestanaActiva == 'listado'" class="divider"></li>
-						<li><a href ng-click="pestanaActivar('about')"><span class="glyphicon glyphicon-info-sign marginRight10"></span> Acerca de...</a></li>
-						<li><a href ng-click="exitApp()"><span class="glyphicon glyphicon-off marginRight10"></span> Salir</a></li>
-					</ul>
+				<div>
+					<div class="btn-group pull-right">
+						<button type="button" class="btn navbar-btn" ng-class="{'btn-default': filtroActivo == -1, 'btn-warning': filtroActivo == 0, 'btn-success': filtroActivo == 1}" ng-disabled="pestanaActiva == 'listado'" ng-click="pestanaActivar('listado')"><span class="glyphicon glyphicon-tasks"></span></button>
+						<button type="button" class="btn btn-default navbar-btn" ng-disabled="pestanaActiva == 'formulario'" ng-click="pestanaActivar('formulario')"><span class="glyphicon glyphicon-plus"></span></button>
+						<button type="button" class="btn btn-default navbar-btn dropdown-toggle" data-toggle="dropdown" aria-expanded="false"><span class="glyphicon glyphicon-cog"></span></button>
+						<ul class="dropdown-menu" role="menu">
+							<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(-1)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == -1, 'glyphicon-unchecked' : filtroActivo != -1 }"></span> Ver todos</a></li>
+							<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(0)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == 0, 'glyphicon-unchecked' : filtroActivo != 0 }"></span> Ver no adquiridos</a></li>
+							<li ng-if="pestanaActiva == 'listado'"><a href ng-click="filtroRegistros(1)"><span class="glyphicon marginRight10" ng-class="{ 'glyphicon-check' : filtroActivo == 1, 'glyphicon-unchecked' : filtroActivo != 1 }"></span> Ver adquiridos</a></li>
+							<li ng-if="pestanaActiva == 'listado'" class="divider"></li>
+							<li><a href ng-click="bddVaciar()" ng-if="dbug"><span class="glyphicon glyphicon-repeat marginRight10"></span> Vaciar BDD</a></li>
+							<li><a href ng-click="bddEjemplos()" ng-if="dbug"><span class="glyphicon glyphicon-star marginRight10"></span> Llenar BDD</a></li>
+							<li><a href ng-click="pestanaActivar('series')"><span class="glyphicon glyphicon-book marginRight10"></span> Series</a></li>
+							<li ng-if="pestanaActiva == 'listado'" class="divider"></li>
+							<li><a href ng-click="pestanaActivar('about')"><span class="glyphicon glyphicon-info-sign marginRight10"></span> Acerca de...</a></li>
+							<li><a href ng-click="exitApp()"><span class="glyphicon glyphicon-off marginRight10"></span> Salir</a></li>
+						</ul>
+					</div>
+					<div class="pull-right marginRight10" ng-if="pestanaActiva == 'formulario'">
+						<button type="button" class="btn btn-info navbar-btn" ng-click="registrar()" id="btn-registrar"><span class="glyphicon glyphicon-save"></span> Registrar</button>
+					</div>
+					<!--<div class="pull-right marginRight10" ng-if="pestanaActiva == 'opciones'">
+						<button type="button" class="btn btn-info navbar-btn" ng-click="actualizarOpciones()"><span class="glyphicon glyphicon-floppy-disk"></span></button>
+					</div>-->
 				</div>
-				<div class="pull-right marginRight10" ng-if="pestanaActiva == 'formulario'">
-					<button type="button" class="btn btn-info navbar-btn" ng-click="registrar()" id="btn-registrar"><span class="glyphicon glyphicon-save"></span> Registrar</button>
-				</div>
-				<!--<div class="pull-right marginRight10" ng-if="pestanaActiva == 'opciones'">
-					<button type="button" class="btn btn-info navbar-btn" ng-click="actualizarOpciones()"><span class="glyphicon glyphicon-floppy-disk"></span></button>
-				</div>-->
 			</nav>		
-			<div role="tabpanel">
+			<div role="tabpanel" ng-show="iniciado">
 				<div class="tab-content">
 					<div role="tabpanel" id="listado" ng-show="pestanaActiva == 'listado'">
 						<span ng-if="objsize(fechas) == 0 && !alertCargando">
 							<div class="alert alert-danger marginTop20"><span class="glyphicon glyphicon-warning-sign"></span> Actualmente no hay artículos registrados.</div>
 							<button class="btn btn-success col-xs-12" ng-click="pestanaActivar('formulario')"><span class="glyphicon glyphicon-exclamation-sign"></span> Haz click aquí para comenzar</button>
 						</span>
-						<div class="alert alert-warning marginTop20" ng-if="alertCargando" ng-init="dbInitiate();">Cargando información...</div>
 						
 						<div id="listado-contenedor" ng-if="!alertCargando">
 						
@@ -195,7 +183,7 @@
 						<div class="form-group">
 							<div class="checkbox">
 								<label>
-									<input ng-model="dbug" type="checkbox" ng-click="dbugMode(dbug)"> Modo de debugueo
+									<input ng-checked="dbug" type="checkbox" ng-click="dbugChange()"> Modo de debugueo
 								</label>
 							</div>
 						</div>
@@ -300,6 +288,28 @@
 				</div>
 			</div>
 		</div>
-		<!--<script src="http://debug-software.intel.com/target/target-script-min.js#rvrwLS9beXvmQiFwgdfRbAGwISqF5TzG01lSTlCk9IA"></script>-->
-  </body>
+		
+		<div id="bg" ng-if="!iniciado" ng-init="initApp()">
+			<div class="container-fluid">
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="alert alert-warning marginTop20" ng-if="alertCargando" ><span class="glyphicon glyphicon-exclamation-sign marginRight10"></span>Cargando librerías...</div>
+						<!--<pre id="console">{{console}}</pre>-->
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<script src="./js/jquery.min.js"></script>
+		<script src="./bootstrap/js/bootstrap.min.js"></script>
+		<script src="./js/comunes.js"></script>
+		<script src="./js/websql.js"></script>
+		<script src="./js/moment.min.js"></script>
+		<script src="./js/typeahead.bundle.js"></script>		
+		<script src="./js/angular.js"></script>
+		<script src="./js/ngStorage.js"></script>
+		<script src="./js/angularTools.js"></script>
+		<script src="./js/system.js"></script>
+		
+	</body>
 </html>

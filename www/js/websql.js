@@ -1,9 +1,9 @@
 /*
 Objetos de la BDD
 */
+var dbSupported = false;
 var db;
 var dbName = 'ContaComics';
-var dbSupported = false;
 if("openDatabase" in window) { dbSupported = true; }
 document.addEventListener("DOMContentLoaded", function(){
 	if(dbSupported) //Continuar
@@ -20,10 +20,10 @@ error: función de ejecución si sucede un error
 */
 var dbOpen = function(params)
 {
+	er('Abriendo DB');
 	if(typeof params == 'undefined') params = {};
-	
 	db = openDatabase(dbName, '1.0', 'Almacén de registros', 5 * 1024 * 1024);
-	db.transaction(function (t) {
+	var dbTransaction = db.transaction(function (t) {
 		w("Creando tabla...");
 		t.executeSql('CREATE TABLE IF NOT EXISTS registros ( "id" TEXT NOT NULL, "titulo" TEXT, "variante" TEXT, "volumen" INTEGER, "precio" INTEGER, "adquirido" INTEGER, "agno" INTEGER, "mes" INTEGER, "dia" INTEGER, "fecha" TEXT, "fecha_adquisicion" TEXT, "fecha_registro" TEXT, PRIMARY KEY ("id") )');
 		if(typeof params.success == 'function') params.success();
@@ -111,16 +111,19 @@ var getRegistro = function(params) {
 	var ejecutar = function()
 	{
 		var transaction = db.transaction(function(t){
-			w('Transaction SELECT...');
-			// w(params.query);
-			t.executeSql(params.query, [], function(tx, results){
-				var resultados = [];
-				var len = results.rows.length, i;
-				for (i = 0; i < len; i++) resultados.push(angular.copy(results.rows.item(i)));
-				params.success(resultados);
-				
-				ccNotifEnd();
-			});
+			if(dbTransactions > 0)
+			{
+				w('Transaction SELECT...');
+				// w(params.query);
+				t.executeSql(params.query, [], function(tx, results){
+					var resultados = [];
+					var len = results.rows.length, i;
+					for (i = 0; i < len; i++) resultados.push(angular.copy(results.rows.item(i)));
+					params.success(resultados);
+					
+					ccNotifEnd();
+				});
+			} else er('Trans Aborted: dbTransactions > ' + dbTransactions + ', dbCompletes > ' + dbCompletes);
 		}, function(e){
 			ccNotifEnd();
 			
@@ -132,7 +135,8 @@ var getRegistro = function(params) {
 		});
 		
 		//Mostrar notificación
-		dbTransactions.push(transaction);
+		// dbTransactions.push(transaction);
+		dbTransactions++;
 		ccNotifInit();
 	}
 	
@@ -161,34 +165,37 @@ var removeRegistro = function(params){
 //Contabilizador de transacciones
 var notificationOn = false;
 var dbCompletes = 0;
-var dbTransactions = [];
+var dbTransactions = 0;
 var ccNotifInit = function(){
-	if(!notificationOn && typeof navigator.notification != 'undefined') navigator.notification.progressStart('', 'Cargando información...');
-	notificationOn = true;
+	if(typeof cordova != 'undefined' && device.available && !notificationOn)
+	{
+		if(typeof navigator.notification != 'undefined') navigator.notification.progressStart('', 'Cargando información...');
+		notificationOn = true;
+	}
 }
 
 var ccNotifEnd = function(){
 	dbCompletes++;
-	w(dbTransactions.length+' == '+dbCompletes);
-	if(dbTransactions.length == dbCompletes) //Ocultar notificación
+	w(dbTransactions+' == '+dbCompletes);
+	if(dbTransactions == dbCompletes) //Ocultar notificación
 	{
-		if(typeof navigator.notification != 'undefined') navigator.notification.progressStop();
 		w('Fin! :D');
-
 		ccNotifReset();
 	}
 	else //Progreso
 	{
-		var v = Math.ceil((dbCompletes / dbTransactions.length) * 100);
+		var v = Math.ceil((dbCompletes / dbTransactions) * 100);
 		if(typeof navigator.notification != 'undefined') navigator.notification.progressValue(v);
 	}
 }
 
 var ccNotifReset = function(){
 	//Reseteo
+	if(typeof navigator.notification != 'undefined') navigator.notification.progressStop();
 	notificationOn = false;
-	dbTransactions = [];
+	dbTransactions = 0;
 	dbCompletes = 0;
+	var db = undefined;
 }
 
 /*Herramientas*/

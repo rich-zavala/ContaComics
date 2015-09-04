@@ -3,8 +3,9 @@
 @-ms-viewport { width: 100vw ; zoom: 100% ; }  @viewport { width: 100vw ; zoom: 100% ; }
 @-ms-viewport { user-zoom: fixed ; }           @viewport { user-zoom: fixed ; }
 html, body {
-    max-width: 100%;
-    overflow-x: hidden;
+	max-width: 100%;
+	overflow-x: hidden;
+	height: 100%;
 }
 body{
 	padding-top: 54px;

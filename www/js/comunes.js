@@ -1,9 +1,33 @@
 //Variables de sistema
-var dbug = true; //Modo de debugueo
+var dbug = false; //Modo de debugueo
 var nofoto = 'images/no_photo.png';
 var host = 'http://service-contacomics.rhcloud.com/';
-
 var uuid = (typeof intel === 'undefined') ? 'local' : intel.xdk.device.uuid;
+
+/*
+Objetos disponibles en mobil. Establecidos para no generar errores.
+*/
+var isDeviceReady
+if(typeof navigator.device == 'undefined')
+{
+	isDeviceReady = true;
+}
+else
+{
+	interval = setInterval(function(){
+		if(typeof intel != 'undefined'){
+			isDeviceReady = true;
+			clearInterval(interval);
+		}
+	},200);
+}
+
+
+// var isDeviceReady = ();
+// document.addEventListener("intel.xdk.device.ready",function(){
+	// isDeviceReady = false;
+	// c('Iniciado por Intel');
+// },false);
 
 function c(s){ try{console.log(s)}catch(e){c(e);} }
 
@@ -77,7 +101,7 @@ window.addEventListener('load', function() {
 
 //Inicializar app
 var inicializarApp = function(){
-	//Modal de "m�s detalles"
+	//Modal de "más detalles"
 	$('.comic-modal').modal('hide').on('shown.bs.modal', function(){
 		var t = $(this);
 		var header = t.find('.modal-header').outerHeight();

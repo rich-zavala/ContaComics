@@ -15,7 +15,6 @@ comicsApp.filter('filtroObjetos', function() {
 });
 
 //Longpress para eliminaciones
-var scrolled = false;
 comicsApp.directive('onLongPress', function($timeout) {
 	return {
 		restrict: 'A',
@@ -34,7 +33,7 @@ comicsApp.directive('onLongPress', function($timeout) {
 						});
 					}
 					else $($elm).removeClass('clicking');
-				}, 600);
+				}, 800);
 			});
 
 			$elm.bind('touchend', function(evt) {
@@ -46,15 +45,17 @@ comicsApp.directive('onLongPress', function($timeout) {
 					});
 				}
 			});
-			
-			window.onscroll = function (e)
-			{
-				scrolled = true;
-				$('.clicking').removeClass('clicking');
-			}
 		}
 	};
 })
+
+//Abortar longpress cuando se haga scroll
+var scrolled = false;
+window.onscroll = function (e)
+{
+	scrolled = true;
+	$('.clicking').removeClass('clicking');
+}
 
 //Doble click para más información
 comicsApp.directive('onDoubleClick', function($timeout) {
@@ -95,7 +96,7 @@ comicsApp.directive("tablaDia", ['$timeout', function($timeout) {
 						$scope.show = data.length > 0;
 						$scope.$apply();
 					},
-					error: function(){ c('Error no definido en [obtener] > ' + filtro.agno + '/' + filtro.mes); }
+					error: function(){ er('Error no definido en [obtener] > ' + filtro.agno + '/' + filtro.mes); }
 				});
 			}
 
@@ -125,12 +126,6 @@ function vacio(){
 	$('#nuevo_titulo').val('')
 	// return { titulo: 'UNCANNY X-MEN', volumen: 7, precio: 10, fecha: new Date(), variante: '', adquirido: 0 };
 	return { titulo: '', fecha: new Date(), variante: '', adquirido: 0 };
-}
-
-//Mostrar eventos de carga
-function p(s){
-	// $('#alertCargandoDiv i').text(s);
-	c(s);
 }
 
 function error(s){ alert(s); }

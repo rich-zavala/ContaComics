@@ -1,6 +1,7 @@
 'use strict';
 comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout', '$templateCache', '$localStorage', function($scope, $http, $filter, $timeout, $templateCache, $localStorage) {
 	$scope.dbug = dbug;
+	$scope.console = $scope.iniciado;
 	$scope.moment = moment;
 	$scope.c = c;
 	$scope.z = z;
@@ -149,6 +150,34 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		$scope.nuevo = vacio();
 	}
 	
+	/*Inicializar sistema*/
+	$scope.iniciado = false;
+	$scope.initApp = function(){
+		//Esperar a que la app esté lista
+		var esperar = function(){
+			$scope.console += '\nEsperando...';
+			$timeout(function(){
+				try{
+					$scope.console += '\n'+!$scope.iniciado+' && '+device.available+' && '+isDeviceReady+' && '+!notificationOn;
+					if(!$scope.iniciado && device.available && isDeviceReady && !notificationOn)
+					{
+						$scope.dbInitiate();
+					}
+					else esperar();
+				} catch(e){
+					$scope.console += '\n'+e;
+					esperar();
+				}
+			}, 500);
+		}
+		
+		//¡Comenzar!
+		if(typeof cordova != 'undefined') //Mobil
+			esperar();
+		else //Local
+			$scope.dbInitiate();
+	}
+	
 	/*Inicializar la BDD*/
 	$scope.registros = [];
 	$scope.dbInitiate = function(){
@@ -167,16 +196,29 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		//Seleccionar primer año
 		if(objsize($scope.fechas) > 0) $scope.pestanaAgnoActivo($scope.keysReversed($scope.fechas)[0]);
 		
-		//Opciones de debugueo
-		if(typeof $localStorage.dbugOpt == 'undefined') $localStorage.dbugOpt = false;
-		$scope.dbug = dbug = $localStorage.dbugOpt;
+		//Inicialización finalizada
+		$scope.iniciado = true;
 	};
 	
 	//Cambiar año activo
 	$scope.pestanaAgnoActivo = function(i){
-		$scope.agnoActivo = i;
-		// $scope.filtroRegistros(-1); //Resetear filtros
-		$scope.regs = $scope.filteredObjects($scope.registros, { agno: i });
+		var cambiarAgno = function(){
+			$scope.agnoActivo = i;
+			$scope.regs = $scope.filteredObjects($scope.registros, { agno: i });
+		}
+		
+		//Abortar transacciones pendientes
+		if(dbTransactions == 0)
+			cambiarAgno();
+		else
+		{
+			ccNotifReset();
+			dbOpen({ success: function(){
+				w('dbTransactions > ' + dbTransactions + ', dbCompletes > ' + dbCompletes);
+				cambiarAgno();
+				$scope.$apply();
+			}});
+		}
 	};
 
 	//Crear sumatorias por día
@@ -190,7 +232,6 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	$scope.filtroActivo = -1;
 	$scope.filtroRegistros = function(filtro){
 		$scope.filtroActivo = filtro;
-		// $scope.pestanaAgnoActivo($scope.agnoActivo);
 	};
 	
 	//Generar objeto de filtro general
@@ -440,9 +481,9 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
   };
 	
 	/*Modo de debugueo*/
-	$scope.dbugMode = function(deb){
-		$scope.dbug = 55;
-		dbug = $scope.dbug = $localStorage.dbugOpt = deb;
+	$scope.dbugChange = function(){
+		$scope.dbug = !$scope.dbug;
+		dbug = $scope.dbug;
 	}
 	
 	/*Vaciar BDD*/

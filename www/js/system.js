@@ -51,8 +51,6 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 				}
 			});
 		}
-		
-		$('.clicking').removeClass('clicking');
 	};
 	
 	/*Eliminación de registro*/
@@ -60,13 +58,6 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		var r = angular.copy(r);		
 		if(confirm('Confirme la eliminación de este registro:\n' + r.titulo + ' #' + r.volumen))
 		{
-			// var eliminado = false;
-			var precio = 0;
-			var momentObj = moment(r.fecha);
-			var agno = momentObj.year();
-			var mes = momentObj.month() + 1;
-			var dia = momentObj.date();
-			
 			removeRegistro({
 				id: r.id,
 				success: function(){
@@ -76,18 +67,62 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 					$scope.$apply();
 					$('.comic-modal').modal('hide');
 					
+					//Remover de localStorage
+					$scope.typeOptions.splice($scope.typeOptions.indexOf(r.titulo), 1);
+					$localStorage.typeOptions.splice($localStorage.typeOptions.indexOf(r.titulo), 1);
+					$scope.typeAheadSet();
+					
+					//Remover fechas si está vacío el día
+					getRegistro({
+						data: { agno: r.agno, mes: r.mes, dia: r.dia },
+						success: function(data){
+							if(data.length == 0)
+							{
+								$localStorage.fechas[r.agno][r.mes].splice($localStorage.fechas[r.agno][r.mes].indexOf(r.dia), 1);
+								var k = z(r.agno) + z(r.mes) + z(r.dia);
+								delete $localStorage.sumatorias[k];
+								$scope.$apply();
+							}
+						}
+					});
+					
+					//Remover mes si está vacío
+					getRegistro({
+						data: { agno: r.agno, mes: r.mes },
+						success: function(data){
+							if(data.length == 0)
+							{
+								delete $localStorage.fechas[r.agno][r.mes];
+								$scope.$apply();
+							}
+						}
+					});
+					
+					//Remover año si está vacío
+					getRegistro({
+						data: { agno: r.agno },
+						success: function(data){
+							if(data.length == 0)
+							{
+								delete $localStorage.fechas[r.agno];
+								$scope.$apply();
+								$scope.pestanaAgnoActivo($scope.keysReversed($scope.fechas)[0]);
+							}
+						}
+					});
+					
 					//Actualizar directivas
 					$scope.$broadcast('registrosAlterados', r);
 				},
 				error: function(){ alert('Ha ocurrido un error. Intente de nuevo más tarde.'); }
 			});
 		}
-		else $('.clicking').removeClass('clicking');
 	};
 	
 	//FORMULARIO > Registrar. Validar y toda la cosa
 	$scope.registrar = function(fecha_registro, fecha_adquisicion){
 		var nuevo = angular.copy($scope.nuevo);
+		nuevo.titulo = nuevo.titulo.toLocaleUpperCase(); //Mayúsculas
 		nuevo.id = code(nuevo);
 		$scope.fecha = moment($scope.fecha);
 		
@@ -141,7 +176,7 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 						for(var i in repetidos)
 						{
 							var conVariante = (nuevo.variante.length > 0) ? ' (Variante de ' + nuevo.variante + ')' : '';
-							if(typeof navigator != 'undefined') navigator.notification.vibrate(500);
+							if(typeof navigator.notification != 'undefined') navigator.notification.vibrate(500);
 							alert('Wow wow wow!\n¡Este ya lo tienes!\n' + nuevo.titulo + conVariante + ' #' + nuevo.volumen + ' ($' + repetidos[i].precio + '.00)\n' + $filter('date')(repetidos[i].fecha, 'longDate'));
 							if(dbug) c('REPETIDO :( ' + nuevo.titulo);
 						}
@@ -181,7 +216,7 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 			esperar();
 		else //Local
 			$scope.dbInitiate();
-	}
+	};
 	
 	/*Inicializar la BDD*/
 	$scope.registros = [];
@@ -418,12 +453,12 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		if(newVal == 'opciones')
 		{
 			getRegistro({
-					success: function(data){
-						$scope.registrosTodos = data;
-						$scope.$apply();
-					},
-					error: function(){ c('Error no definido en [obtener] > ' + filtro.agno + '/' + filtro.mes); }
-				});
+				success: function(data){
+					$scope.registrosTodos = data;
+					$scope.$apply();
+				},
+				error: function(){ c('Error no definido en [obtener] > ' + filtro.agno + '/' + filtro.mes); }
+			});
 		}
 		
 		window.scrollTo(0, 0);

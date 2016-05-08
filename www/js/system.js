@@ -293,17 +293,22 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 			highlight: false
 		},
 		{
-			name: 'states',
+			name: 'titulos',
 			displayKey: 'value',
 			source: function (query, process) {
-				var states = [];
+				var titulos = [];
 				$.each($scope.typeOptions, function (i, state) {
-					if(states.length < 5 && $scope.matcher(state, query)) states.push({value: state});
+					if(titulos.length < 5 && $scope.matcher(state, query)) titulos.push({value: state});
 				});
-				process(states);
+				process(titulos);
 			},
+		}).on('typeahead:selected', function($e, datum){
+			var val = $.trim(datum.value.toUpperCase());
+			$(this).val(val);
+			$scope.nuevo.titulo = val;
+		}).blur(function(){
+			$scope.nuevo.titulo = $.trim($(this).val().toUpperCase());
 		});
-		$('.toUpper').blur(function(){ $(this).val($.trim($(this).val().toUpperCase())); });
 	};
 	
 	//Abrir vínculos con el XDK
@@ -317,119 +322,6 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 		intel.xdk.device.sendEmail(bodyText, $scope.richEmail, "ContaComics", true, "", "" ); 
 	};
 
-	//MISCOMICS
-	/*$scope.misComicsElegido = { titulo: '', cover: '' }; //Info que va al $scope.agregar
-	$scope.misComicsElegidoFecha = new Date(); //Info que va al $sope.agregar
-	$scope.alertCargandoMisComics = false;
-	$scope.alertCargandoMisComicsError = false;
-	$scope.misComicsMes = (new Date()).getMonth() + 1;
-	$scope.misComicsAgno = (new Date()).getFullYear();
-	
-	//Cambiar de mes
-	$scope.misComicsCambio = function(i){
-		$scope.misComicsMes += i;
-		if($scope.misComicsMes === 0)
-		{
-			$scope.misComicsMes = 12;
-			$scope.misComicsAgno--;
-		}
-		else if($scope.misComicsMes == 13)
-		{
-			$scope.misComicsMes = 1;
-			$scope.misComicsAgno++;
-		}
-		$scope.misComicsLoad();
-	};
-	
-	//Crear arreglo de comics
-	$scope.misComicsObjetos = [];
-	$scope.misComicsObjetosIndice = 0;
-	$scope.misComicsLoad = function(){
-		$scope.alertCargandoMisComicsError = false;
-		if(!$scope.alertCargandoMisComics)
-		{
-			$('.MCmesesBotones .btn').addClass('disabled');
-			var mesElegido = -1;
-			if($scope.misComicsObjetos.length > 0) for(var i in $scope.misComicsObjetos) if($scope.misComicsObjetos[i].mes == $scope.misComicsMes && $scope.misComicsObjetos[i].agno == $scope.misComicsAgno) mesElegido = i;
-			
-			if(mesElegido == -1)
-			{
-				$scope.alertCargandoMisComics = true;
-				var url = host + 'mexicomics/listado/' + $scope.misComicsMes + '/' + $scope.misComicsAgno + '.html';
-				$.ajax({
-					url: url,
-					crossDomain: true,
-					dataType: 'json',
-					timeout: 10000,
-					cache : false,
-					success: function(data){
-						//Reemplazar objetos sin cover
-						for(var i in data) for(var ii in data[i].objetos) if(data[i].objetos[ii].cover.indexOf('nocover') >=0 || (data[i].objetos[ii].cover.indexOf('png') < 0 && data[i].objetos[ii].cover.indexOf('jpg') < 0)) data[i].objetos[ii].cover = 'images/no_cover.gif';
-						
-						var info = { mes: $scope.misComicsMes, agno: $scope.misComicsAgno, data: data };
-						$scope.misComicsObjetos.push(info);
-						$scope.misComicsObjetosIndice = $scope.misComicsObjetos.length - 1;
-					},
-					error: function(){
-						// $('.MCmesesBotones .btn').hide('clip');
-						$scope.alertCargandoMisComicsError = true;
-					},
-					complete: function(){
-						$scope.alertCargandoMisComics = false;			
-						$('.MCmesesBotones .btn').removeClass('disabled');
-						$scope.$apply();
-					}
-				});
-			}
-			else
-			{
-				$scope.alertCargandoMisComics = false;
-				$('.MCmesesBotones .btn').removeClass('disabled');
-				$scope.misComicsObjetosIndice = mesElegido;
-			}
-		}
-	};
-	
-	//Agregar desde MC
-	$scope.misComicsPanelSeleccionado = 0;
-	$scope.misComicsModal = function(o, fecha, kmc){
-		$scope.misComicsElegido = o;
-		$scope.misComicsElegidoFecha = fecha;
-		$scope.misComicsPanelSeleccionado = kmc;
-		
-		//Se declara el atributo para que se abra externamente. Por alguna razón, angular no permite declararlo con brackets
-		$('#mcModalTarget').attr('onclick', "intel.xdk.device.launchExternal('" + o.href + "');");
-	};
-	
-	$scope.misComicsAgregando = false;
-	$scope.misComicsAgregar = function(obj, fecha){
-		obj = $scope.misComicsElegido;
-		fecha = $scope.misComicsElegidoFecha;
-		if(!$scope.misComicsAgregando)
-		{
-			$scope.misComicsAgregando = true;
-			$scope.nuevo.titulo = obj.titulo.toUpperCase();
-			$scope.nuevo.volumen = parseInt(obj.volumen.toUpperCase());
-			$scope.nuevo.precio = parseFloat(obj.precio.toUpperCase());
-			$scope.nuevo.variante = $.trim(obj.variante.toUpperCase().replace('VAR ', ''));
-			var f = fecha.split('-');
-			$scope.nuevo.fecha = new Date( f[1] + '-' + f[0] + '-' + f[2] );
-			$scope.registrar(true);
-			
-			$('#mc-panel-' + $scope.misComicsPanelSeleccionado).animate({ opacity: 0.2 }, 1000);
-			$scope.miscomicsModalCerrar();
-			
-			$scope.misComicsAgregando = false;
-		}
-	};
-	
-	//Cerrar Modal de MisComics
-	$scope.miscomicsModalCerrar = function(){
-		$('.mc-modal').modal('hide').on('hidden.bs.modal', function (){
-			$scope.misComicsAgregando = false;
-		});
-	};
-	*/
 	//Ventana de más detalles
 	$scope.detalle = vacio();
 	$scope.detallesShow = function(registro){

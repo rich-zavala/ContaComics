@@ -22,13 +22,6 @@ else
 	},200);
 }
 
-
-// var isDeviceReady = ();
-// document.addEventListener("intel.xdk.device.ready",function(){
-	// isDeviceReady = false;
-	// c('Iniciado por Intel');
-// },false);
-
 function c(s){ try{console.log(s)}catch(e){c(e);} }
 
 function _e(s){ c(s); }
@@ -56,11 +49,6 @@ function unique(array){
 		return index === arr.indexOf(el);
 	});
 }
-
-//Valor mínimo de un arreglo
-// Array.min = function( array ){
-  // return Math.min.apply( Math, array );
-// };
 
 //Contar elementos de un objeto
 var objsize = function(obj) {

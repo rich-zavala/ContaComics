@@ -1,6 +1,6 @@
 <div class="tabla-registros" ng-if="objsize(registros) > 0 && agnoActivo == tablaAgno">
 	<small class="pull-right precioSum text-muted semiTransparente">{{sumatorias[agnoActivo + z(mes) + z(dia)] | currency}}</small>
-	<h4 class="negritas">{{moment(agnoActivo + '-' + mes + '-' + dia).format('D [de] MMMM, YYYY')}}</h4>
+	<h4>{{moment(agnoActivo + '-' + mes + '-' + dia).format('D [de] MMMM, YYYY')}}</h4>
 	<table class="table table-condensed table-striped table-items">
 		<tr ng-repeat="r in registros track by r.id" class="registro">
 			<td width="1">
@@ -11,15 +11,11 @@
 			</td>
 			<td class="trTitulo">{{r.titulo}} #{{r.volumen}} <div class="f8em text-muted" ng-if="r.variante.length > 0">Var. {{r.variante}}</div></td>
 			<td width="1" class="text-right" nowrap>
-				<div class="btn-group btn-group-xs" role="group">
-					<button type="button" class="btn btn-hidden btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				<div class="btn-group btn-group-xs">
+					<button type="button" class="btn btn-hidden btn-xs dropdown-toggle" ng-click="informacion(r)">
 						{{r.precio | currency}}
 						<span class="caret marginLeft5"></span>
 					</button>
-					<ul class="dropdown-menu dropdown-menu-right">
-						<li><a ng-click="eliminar(r)"><span class="glyphicon glyphicon-remove marginRight10"></span> Eliminar</a></li>
-						<li><a ng-click="detallesShow(r)"><span class="glyphicon glyphicon-info-sign marginRight10"></span> Más información</a></li>
-					</ul>
 				</div>
 			</td>
 		</tr>

@@ -14,7 +14,6 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	//Índices para mostrar / ocultar alertas
 	$scope.alertCargando = true;
 	$scope.alertCargandoRegistros = true;
-	$scope.alertEliminando = false;
 
 	//Registros
 	$scope.nuevo = vacio();
@@ -22,18 +21,9 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	//Cambiar valor de adquisición
 	$scope.adquisicion = function(r, refresh){
 		var adquisicion = (r.adquirido === 0) ? 1 : 0;
-		var cambio = false;
 		
-		//Mensaje de información
-		var msg = 'Fecha de registro:\n' + moment(r.fecha_registro).format('MMMM MM, YYYY - h:mm a') + ' \n\nFecha adquisición:\n' + moment(r.fecha_adquisicion).format('MMMM MM, YYYY - h:mm a');
-		if(adquisicion === 0 && confirm('Confirme el cambio de adquisición:\n' + msg))
-			var cambio = true;
-		else if(adquisicion == 1)
-			cambio = true;
-		
-		if(cambio)
-		{
-			// var r = angular.copy(r)
+		//Acción de cambio
+		var cambiar = function(){
 			r.adquirido = adquisicion;
 			r.fecha_adquisicion = new Date();
 			
@@ -42,7 +32,8 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 				put: true,
 				success: function(){
 					//Actualizar directivas
-					if(typeof refresh != 'undefined' && refresh) $scope.$broadcast('registrosAlterados', r);
+					if(typeof refresh != 'undefined' && refresh)
+						$scope.$broadcast('registrosAlterados', r);
 				},
 				error: function(e){
 					alert('Ha ocurrido un error.');
@@ -50,144 +41,168 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 					$scope.exitApp();
 				}
 			});
+		};
+		
+		//Cambiar con confirm
+		var cambiarConfirm = function(btnIndex)
+		{
+			if(btnIndex == 1)
+			{
+				cambiar();
+				$scope.$apply();
+			}
 		}
+		
+		//Mensaje de información
+		var msg = 'Fecha de registro:\n' + moment(r.fecha_registro).format('MMMM MM, YYYY - h:mm a') + ' \n\nFecha adquisición:\n' + moment(r.fecha_adquisicion).format('MMMM MM, YYYY - h:mm a');
+		if(adquisicion == 0) //Remover adquisición
+			navigator.notification.confirm('Confirme el cambio de adquisición:\n\n' + msg, cambiarConfirm, 'Remover adquisición', ['Remover', 'Cancelar'])
+		else if(adquisicion == 1)
+			cambiar();
 	};
 	
 	/*Eliminación de registro*/
 	$scope.eliminar = function(r){
-		var r = angular.copy(r);		
-		if(confirm('Confirme la eliminación de este registro:\n' + r.titulo + ' #' + r.volumen))
-		{
-			removeRegistro({
-				id: r.id,
-				success: function(){
-					//Componer sumatorias
-					$scope.sumar(r.agno, r.mes, r.dia, -r.precio);
-					
-					$scope.$apply();
-					$('.comic-modal').modal('hide');
-					
-					//Remover de localStorage
-					$scope.typeOptions.splice($scope.typeOptions.indexOf(r.titulo), 1);
-					$localStorage.typeOptions.splice($localStorage.typeOptions.indexOf(r.titulo), 1);
-					$scope.typeAheadSet();
-					
-					//Remover fechas si está vacío el día
-					getRegistro({
-						data: { agno: r.agno, mes: r.mes, dia: r.dia },
-						success: function(data){
-							if(data.length == 0)
-							{
-								$localStorage.fechas[r.agno][r.mes].splice($localStorage.fechas[r.agno][r.mes].indexOf(r.dia), 1);
-								var k = z(r.agno) + z(r.mes) + z(r.dia);
-								delete $localStorage.sumatorias[k];
-								$scope.$apply();
+		var r = angular.copy(r);
+		var eliminarRegistro = function(btnIndex){
+			if(btnIndex == 1)
+			{
+				removeRegistro({
+					id: r.id,
+					success: function(){
+						$scope.sumar(r.agno, r.mes, r.dia, -r.precio); //Componer sumatorias
+						
+						$scope.$apply();
+						$('.comic-modal').modal('hide');
+						
+						//Remover de localStorage
+						$scope.typeOptions.splice($scope.typeOptions.indexOf(r.titulo), 1);
+						$localStorage.typeOptions.splice($localStorage.typeOptions.indexOf(r.titulo), 1);
+						$scope.typeAheadSet();
+						
+						//Remover fechas si está vacío el día
+						getRegistro({
+							data: { agno: r.agno, mes: r.mes, dia: r.dia },
+							success: function(data){
+								if(data.length == 0)
+								{
+									$localStorage.fechas[r.agno][r.mes].splice($localStorage.fechas[r.agno][r.mes].indexOf(r.dia), 1);
+									var k = z(r.agno) + z(r.mes) + z(r.dia);
+									delete $localStorage.sumatorias[k];
+									$scope.$apply();
+								}
 							}
-						}
-					});
-					
-					//Remover mes si está vacío
-					getRegistro({
-						data: { agno: r.agno, mes: r.mes },
-						success: function(data){
-							if(data.length == 0)
-							{
-								delete $localStorage.fechas[r.agno][r.mes];
-								$scope.$apply();
+						});
+						
+						//Remover mes si está vacío
+						getRegistro({
+							data: { agno: r.agno, mes: r.mes },
+							success: function(data){
+								if(data.length == 0)
+								{
+									delete $localStorage.fechas[r.agno][r.mes];
+									$scope.$apply();
+								}
 							}
-						}
-					});
-					
-					//Remover año si está vacío
-					getRegistro({
-						data: { agno: r.agno },
-						success: function(data){
-							if(data.length == 0)
-							{
-								delete $localStorage.fechas[r.agno];
-								$scope.$apply();
-								$scope.pestanaAgnoActivo($scope.keysReversed($scope.fechas)[0]);
+						});
+						
+						//Remover año si está vacío
+						getRegistro({
+							data: { agno: r.agno },
+							success: function(data){
+								if(data.length == 0)
+								{
+									delete $localStorage.fechas[r.agno];
+									$scope.$apply();
+									$scope.pestanaAgnoActivo($scope.keysReversed($scope.fechas)[0]);
+								}
 							}
-						}
-					});
-					
-					//Actualizar directivas
-					$scope.$broadcast('registrosAlterados', r);
-				},
-				error: function(){ alert('Ha ocurrido un error. Intente de nuevo más tarde.'); }
-			});
-		}
+						});
+						
+						//Actualizar directivas
+						$scope.$broadcast('registrosAlterados', r);
+					},
+					error: function(){ alert('Ha ocurrido un error. Intente de nuevo más tarde.'); }
+				});
+			}
+		};
+		
+		navigator.notification.confirm('Confirme la eliminación de este registro:\n\n' + r.titulo + ' #' + r.volumen, eliminarRegistro, 'Eliminar registro', ['Confirmar', 'Cancelar'])
 	};
 	
 	//FORMULARIO > Registrar. Validar y toda la cosa
 	$scope.registrar = function(fecha_registro, fecha_adquisicion){
-		var nuevo = angular.copy($scope.nuevo);
-		nuevo.titulo = nuevo.titulo.toLocaleUpperCase(); //Mayúsculas
-		nuevo.id = code(nuevo);
-		$scope.fecha = moment($scope.fecha);
-		
-		//Establacer objetos de fecha para ayudar en los filtrados
-		var momentObj = moment(nuevo.fecha);
-		nuevo.agno = momentObj.year();
-		nuevo.mes = momentObj.month() + 1;
-		nuevo.dia = momentObj.date();
-		
-		if(angular.isUndefined(fecha_registro))
-			nuevo.fecha_registro = (angular.isUndefined(nuevo.fecha_registro)) ? new Date() : new Date(nuevo.fecha_registro);
-		else
-			nuevo.fecha_registro = new Date(fecha_registro);
-		
-		if(angular.isUndefined(fecha_adquisicion))
-			nuevo.fecha_adquisicion = (nuevo.adquirido == 1) ? nuevo.fecha_registro : 'No definido';
-		else
-			nuevo.fecha_adquisicion = new Date(fecha_adquisicion);
-		
-		//Agregar
-		addRegistro({
-			data: nuevo,
-			success: function(){
-				//Crear objetos de fecha
-				$timeout(function(){ //El timeout es necesario para que se estabilicen las variables mientras se ejecutan otros inserts
-					$scope.registros[nuevo.id] = nuevo; //Asignar a la colección
-				
-					if(typeof $scope.fechas[nuevo.agno] == 'undefined') $scope.fechas[nuevo.agno] = {};
-					if(typeof $scope.fechas[nuevo.agno][nuevo.mes] == 'undefined') $scope.fechas[nuevo.agno][nuevo.mes] = [];
-					if($scope.fechas[nuevo.agno][nuevo.mes].indexOf(nuevo.dia) < 0)
-					{
-						$scope.fechas[nuevo.agno][nuevo.mes].push(nuevo.dia);
-						$scope.fechas[nuevo.agno][nuevo.mes] = $scope.fechas[nuevo.agno][nuevo.mes].sort(function(a, b){return b-a});
-					}
+		if($scope.nuevo.titulo.trim().length > 0)
+		{
+			var nuevo = angular.copy($scope.nuevo);
+			nuevo.titulo = nuevo.titulo.toLocaleUpperCase(); //Mayúsculas
+			nuevo.id = code(nuevo);
+			$scope.fecha = moment($scope.fecha);
+			
+			//Establacer objetos de fecha para ayudar en los filtrados
+			var momentObj = moment(nuevo.fecha);
+			nuevo.agno = momentObj.year();
+			nuevo.mes = momentObj.month() + 1;
+			nuevo.dia = momentObj.date();
+			
+			if(angular.isUndefined(fecha_registro))
+				nuevo.fecha_registro = (angular.isUndefined(nuevo.fecha_registro)) ? new Date() : new Date(nuevo.fecha_registro);
+			else
+				nuevo.fecha_registro = new Date(fecha_registro);
+			
+			if(angular.isUndefined(fecha_adquisicion))
+				nuevo.fecha_adquisicion = (nuevo.adquirido == 1) ? nuevo.fecha_registro : 'No definido';
+			else
+				nuevo.fecha_adquisicion = new Date(fecha_adquisicion);
+			
+			//Agregar
+			addRegistro({
+				data: nuevo,
+				success: function(){
+					//Crear objetos de fecha
+					$timeout(function(){ //El timeout es necesario para que se estabilicen las variables mientras se ejecutan otros inserts
+						$scope.registros[nuevo.id] = nuevo; //Asignar a la colección
 					
-					//Ingresar a sumatorias
-					$scope.sumar(nuevo.agno, nuevo.mes, nuevo.dia, nuevo.precio);
-					
-					//TypeAhead
-					if($scope.typeOptions.indexOf(nuevo.titulo) < 0) $scope.typeOptions.push(nuevo.titulo);
-					$scope.typeAheadSet();
-					
-					//Actualizar directivas
-					$scope.$broadcast('registrosAlterados', nuevo);
-				}, 1);
-			},
-			repetido: function(){
-				getRegistro({
-					data: { id: nuevo.id },
-					success: function(repetidos){
-						for(var i in repetidos)
+						if(typeof $scope.fechas[nuevo.agno] == 'undefined') $scope.fechas[nuevo.agno] = {};
+						if(typeof $scope.fechas[nuevo.agno][nuevo.mes] == 'undefined') $scope.fechas[nuevo.agno][nuevo.mes] = [];
+						if($scope.fechas[nuevo.agno][nuevo.mes].indexOf(nuevo.dia) < 0)
 						{
-							var conVariante = (nuevo.variante.length > 0) ? ' (Variante de ' + nuevo.variante + ')' : '';
-							if(typeof navigator.notification != 'undefined') navigator.notification.vibrate(500);
-							alert('Wow wow wow!\n¡Este ya lo tienes!\n' + nuevo.titulo + conVariante + ' #' + nuevo.volumen + ' ($' + repetidos[i].precio + '.00)\n' + $filter('date')(repetidos[i].fecha, 'longDate'));
-							if(dbug) c('REPETIDO :( ' + nuevo.titulo);
+							$scope.fechas[nuevo.agno][nuevo.mes].push(nuevo.dia);
+							$scope.fechas[nuevo.agno][nuevo.mes] = $scope.fechas[nuevo.agno][nuevo.mes].sort(function(a, b){return b-a});
 						}
-					},
-					error: function(){ c('Error no definido.'); }
-				});
-			},
-			error: function(e){ c(e); }
-		});
-		
-		$scope.nuevo = vacio();
+						
+						//Ingresar a sumatorias
+						$scope.sumar(nuevo.agno, nuevo.mes, nuevo.dia, nuevo.precio);
+						
+						//TypeAhead
+						if($scope.typeOptions.indexOf(nuevo.titulo) < 0) $scope.typeOptions.push(nuevo.titulo);
+						$scope.typeAheadSet();
+						
+						//Actualizar directivas
+						$scope.$broadcast('registrosAlterados', nuevo);
+						$scope.nuevo = vacio();
+					}, 1);
+				},
+				repetido: function(){
+					getRegistro({
+						data: { id: nuevo.id },
+						success: function(repetidos){
+							for(var i in repetidos)
+							{
+								var conVariante = (nuevo.variante.length > 0) ? ' (Variante de ' + nuevo.variante + ')' : '';
+								navigator.notification.vibrate(1000);
+								var msg = '¡Este ya lo tienes!\n\n' + nuevo.titulo + conVariante + ' #' + nuevo.volumen + ' ($' + repetidos[i].precio + '.00)\n' + moment(repetidos[i].fecha).format('MMMM MM, YYYY - h:mm a');
+								navigator.notification.alert(msg, null, '!Wow wow wow!', 'Aceptar');
+								
+								if(dbug) c('REPETIDO :( ' + nuevo.titulo);
+							}
+						},
+						error: function(){ c('Error no definido.'); }
+					});
+				},
+				error: function(e){ c(e); }
+			});
+		}
 	}
 	
 	/*Inicializar sistema*/
@@ -284,7 +299,7 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	//Buscador
 	$scope.matcher = function (item, query) { if (item.toLowerCase().indexOf(query.trim().toLowerCase()) != -1) return true; };
 	
-	//Asignar el typeAhead
+	//Asignar el typeAhead al campo de Registro/Título
 	$scope.typeAheadSet = function(){
 		$('.typeAhead').typeahead('destroy');
 		$('.typeAhead').typeahead({
@@ -323,12 +338,20 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	};
 
 	//Ventana de más detalles
-	$scope.detalle = vacio();
-	$scope.detallesShow = function(registro){
-		$scope.detalle = angular.copy(registro);
+	// $scope.detalle = vacio();
+	/*$scope.detallesShow = function(registro){
+		var msg = 'Vol. #' + registro.volumen + ' - ' + $filter('currency')(registro.precio) + '\n\n'
+						+	'Fecha de registro:\n' + moment(registro.fecha_registro).format('MMMM MM, YYYY - h:mm a') + '\n\n'
+						+	'Fecha de adquisición:\n' +	((registro.fecha_adquisicion != 'Invalid Date') ? moment(registro.fecha_adquisicion).format('MMMM MM, YYYY - h:mm a') : 'No disponible');
+						console.log(registro.fecha_adquisicion)
+						console.log(registro.fecha_adquisicion != 'Invalid Date')
+		navigator.notification.alert(msg, function(){}, registro.titulo, 'Aceptar');
+		
+		
+		/*$scope.detalle = angular.copy(registro);
 		$scope.detalle.foto = $scope.getFoto(registro.id);
 		$('.comic-modal').modal('show');
-	};
+	};*/
 	
 	//Foto en detalles
 	$scope.fotos = [];
@@ -385,31 +408,40 @@ comicsApp.controller('ComicsAppCtrl', ['$scope', '$http', '$filter', '$timeout',
 	/*22 ago 2015 ¡SERIES!*/
 	$scope.series = {};
 	$scope.seriesGenerar = function(serie){
-		$scope.series = { titulo: $scope.series.titulo, serie: serie, registros: [], volumenes: 0, importe: 0, show: false };
-		var volumenes = {};		
-		getRegistro({
-			data: { titulo: serie },
-			success: function(data){
-				volumenes = data;
-				
-				//Ordenar por volumen
-				$scope.series.registros = [];
-				var numeros = [];
-				for(var i in volumenes) numeros.push(volumenes[i].volumen);
-				numeros = numeros.sort(function(a, b){return a-b});
-				for(var i in numeros)
-						for(var vi in volumenes)
-								if(volumenes[vi].volumen == numeros[i])
-								{
-									$scope.series.registros.push(volumenes[vi]);
-									$scope.series.volumenes++;
-									$scope.series.importe += volumenes[vi].precio;
-								}
-				$scope.series.show = true;
-				$scope.$apply();
-			},
-			error: function(){ er('Error no definido...'); }
-		});
+		var index = serie;
+		console.log(serie);
+		// $scope.series[index] = { titulo: $scope.series[index].titulo, serie: serie, registros: [], volumenes: 0, importe: 0, show: false };
+		if(typeof $scope.series[index] == 'undefined')
+		{
+			$scope.series[index] = { registros: [], volumenes: 0, importe: 0, show: false };
+			var volumenes = {};
+			getRegistro({
+				data: { titulo: serie },
+				success: function(data){
+					volumenes = data;
+					
+					//Ordenar por volumen
+					$scope.series[index].registros = [];
+					var numeros = [];
+					for(var i in volumenes) if(numeros.indexOf(volumenes[i].volumen) < 0) numeros.push(volumenes[i].volumen);
+					numeros = numeros.sort(function(a, b){return a-b});
+					for(var i in numeros)
+							for(var vi in volumenes)
+									if(volumenes[vi].volumen == numeros[i])
+									{
+										$scope.series[index].registros.push(volumenes[vi]);
+										$scope.series[index].volumenes++;
+										$scope.series[index].importe += volumenes[vi].precio;
+									}
+					$scope.series[index].show = true;
+					console.log($scope.series[index]);
+					$scope.$apply();
+				},
+				error: function(){ er('Error no definido...'); }
+			});
+		}
+		else
+			delete $scope.series[index];
   };
 	
 	/*Modo de debugueo*/

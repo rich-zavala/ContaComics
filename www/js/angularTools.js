@@ -1,4 +1,5 @@
 var comicsApp = angular.module('comicsApp', ['ngStorage']);
+var infoShow = false; //Indicador de notificación abierta
 
 //Filtro especial
 comicsApp.filter('filtroObjetos', function() {
@@ -14,7 +15,7 @@ comicsApp.filter('filtroObjetos', function() {
   };
 });
 
-comicsApp.directive("tablaDia", ['$timeout', function($timeout) {
+comicsApp.directive("tablaDia", ['$filter', '$timeout', function($filter, $timeout) {
 	return {
 		// scope: true,
 		controller: function($scope, $element, $attrs) {			
@@ -40,7 +41,7 @@ comicsApp.directive("tablaDia", ['$timeout', function($timeout) {
 					},
 					error: function(){ er('Error no definido en [obtener] > ' + filtro.agno + '/' + filtro.mes); }
 				});
-			}
+			};
 
 			if ($scope.$last) {
 				$timeout(function() {
@@ -57,6 +58,25 @@ comicsApp.directive("tablaDia", ['$timeout', function($timeout) {
 			$scope.$on('registrosAlterados', function(event, args){
 				if(args.mes == $attrs.tablaMes && args.dia == $attrs.tablaDia) obtener();
 			});
+			
+			/* 14 May 2016 > Reemplazo de pantalla de más información. */
+			$scope.informacion = function(registro){
+				if(!infoShow)
+				{
+					var continuar = function(btnIndex){
+						if(btnIndex == 1)
+							$scope.eliminar(registro); //Función en scope principal
+					
+						infoShow = false;
+					};
+					
+					infoShow = true;
+					var msg = 'Vol. #' + registro.volumen + ' - ' + $filter('currency')(registro.precio) + '\n\n'
+							+	'Fecha de registro:\n' + moment(registro.fecha_registro).format('MMMM MM, YYYY - h:mm a') + '\n\n'
+							+	'Fecha de adquisición:\n' +	((registro.fecha_adquisicion != 'Invalid Date') ? moment(registro.fecha_adquisicion).format('MMMM MM, YYYY - h:mm a') : 'No disponible');
+					navigator.notification.confirm(msg, continuar, registro.titulo, ['Eliminar', 'Cerrar']);
+				}
+			};
 		},
     restrict: 'E',
     templateUrl: 'templates/tabla_dia.html'
@@ -65,8 +85,7 @@ comicsApp.directive("tablaDia", ['$timeout', function($timeout) {
 
 /*Formar un item vacío*/
 function vacio(){
-	$('#nuevo_titulo').val('')
-	// return { titulo: 'UNCANNY X-MEN', volumen: 7, precio: 10, fecha: new Date(), variante: '', adquirido: 0 };
+	$('#nuevo_titulo').val('');
 	return { titulo: '', fecha: new Date(), variante: '', adquirido: 0 };
 }
 

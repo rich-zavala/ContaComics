@@ -46,3 +46,4 @@ TODO
 - Registrar foto
 - Funciones masivas
 - Sincronización en la nube
+- Usar Native-React
